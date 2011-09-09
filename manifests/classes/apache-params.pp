@@ -1,0 +1,216 @@
+# File::      <tt>apache-params.pp</tt>
+# Author::    Sebastien Varrette (Sebastien.Varrette@uni.lu)
+# Copyright:: Copyright (c) 2011 Sebastien Varrette
+# License::   GPL v3
+#
+# ------------------------------------------------------------------------------
+# = Class: apache::params
+#
+# In this class are defined as variables values that are used in other
+# apache classes.
+# This class should be included, where necessary, and eventually be enhanced
+# with support for more OS
+#
+# == Warnings
+#
+# /!\ Always respect the style guide available
+# here[http://docs.puppetlabs.com/guides/style_guide]
+#
+# The usage of a dedicated param classe is advised to better deal with
+# parametrized classes, see
+# http://docs.puppetlabs.com/guides/parameterized_classes.html
+#
+# [Remember: No empty lines between comments and class definition]
+#
+class apache::params {
+
+    ######## DEFAULTS FOR VARIABLES USERS CAN SET ##########################
+    # (Here are set the defaults, provide your custom variables externally)
+    # (The default used is in the line with '')
+    ###########################################
+
+    # ensure the presence (or absence) of apache
+    $ensure = $apache_ensure ? {
+        ''      => 'present',
+        default => "${apache_ensure}"
+    }
+
+    # The Protocol used. Used by monitor and firewall class. Default is 'tcp'
+    $protocol = $apache_protocol ? {
+        ''      => 'tcp',
+        default => "${apache_protocol}",
+    }
+    # The port number. Used by monitor and firewall class. The default is 22.
+    $port = $apache_port ? {
+        ''      => [ '80' ],
+        default => $apache_port,
+    }
+
+    
+    
+    #### MODULE INTERNAL VARIABLES  #########
+    # (Modify to adapt to unsupported OSes)
+    #######################################
+    # package for apache2
+    $packagename = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => 'apache2',
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd',        
+        default => 'apache2'
+    }
+
+    # associated dev packages
+    $dev_packages = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => [ 'libaprutil1-dev', 'libapr1-dev', 'apache2-prefork-dev' ],
+        /(?i-mx:centos|fedora|redhat)/ => [ 'httpd-devel' ],        
+        default => [ 'apache-dev' ]
+    }
+
+    # to activate PHP with apache
+    $php_packages = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => [ 'libapache2-mod-php5' ],
+        /(?i-mx:centos|fedora|redhat)/ => [ 'php' ],        
+        default => [ 'php' ]
+    }
+
+    # to activate SSL with apache
+    $ssl_packages = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => [ 'apache-ssl' ],
+        /(?i-mx:centos|fedora|redhat)/ => [ 'mod_ssl' ],        
+        default => [ 'apache-ssl' ]
+    }
+    
+    $servicename = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => 'apache2',
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd',        
+        default => 'apache2'
+    }
+
+    # used for pattern in a service ressource
+    $processname = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => 'apache2',
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd',        
+        default => 'apache2'
+    }
+
+    $hasstatus = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => false,
+        /(?i-mx:centos|fedora|redhat)/ => true,
+        default => true,
+    }
+
+    $hasrestart = $::operatingsystem ? {
+        default => true,
+    }
+
+    # user to run (and own) apache service/files 
+    $user = $::operatingsystem ? {        
+        /(?i-mx:ubuntu|debian)/        => 'www-data',
+        /(?i-mx:centos|fedora|redhat)/ => 'apache',        
+        default => 'www-data'
+    }
+
+    # group to run (and own) apache service/files 
+    $group = $::operatingsystem ? {        
+        /(?i-mx:ubuntu|debian)/        => 'www-data',
+        /(?i-mx:centos|fedora|redhat)/ => 'apache',        
+        default => 'www-data'
+    }
+
+    # Whether or not to activate SSL for virtual hosts
+    $use_ssl = true
+
+    # Whether or not to redirect http requests to https (require mod_rewrite)
+    $redirect_ssl  = false
+    
+    # Main config dir 
+    $configdir = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => '/etc/apache2',
+        /(?i-mx:centos|fedora|redhat)/ => '/etc/httpd',        
+        default => '/etc/apache2',
+    }
+    $configdir_mode = $::operatingsystem ? {
+        default => '0755',
+    }
+    $configfile_mode = $::operatingsystem ? {
+        default => '0644',
+    }
+    $configdir_owner = $::operatingsystem ? {
+        default => 'root',
+    }
+    $configdir_group = $::operatingsystem ? {
+        default => 'root',
+    }
+
+    # Virtual host dir
+    $vhost_availabledir = $::operatingsystem ? {
+        default => "$configdir/sites-available",
+    }
+    $vhost_enableddir = $::operatingsystem ? {
+        default => "$configdir/sites-enabled",
+    }
+    # Default virtual host template file
+    $vhost_default = $::operatingsystem ? {
+        default => 'default-vhost.erb',
+    }  
+    
+    # WWW data dir
+    $wwwdir = $::operatingsystem ? {
+        default => "/var/www",
+    }
+    $wwwdir_mode = $::operatingsystem ? {
+        default => '0755',
+    }
+    $wwwdir_owner = $::operatingsystem ? {
+        default => 'root',
+    }
+    $wwwdir_group = $::operatingsystem ? {
+        default => 'root',
+    }
+    
+    # cgi-bin dir
+    $cgidir = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => '/usr/lib/cgi-bin',
+        /(?i-mx:centos|fedora|redhat)/ => '/var/www/cgi-bin',
+        default => '/usr/lib/cgi-bin',
+    }
+    $cgidir_mode = $::operatingsystem ? {
+        default => '0755',
+    }
+    $cgidir_owner = $::operatingsystem ? {
+        default => 'root',
+    }
+    $cgidir_group = $::operatingsystem ? {
+        default => 'root',
+    }
+
+    # Apache2 log directory
+    $logdir = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => '/var/log/apache2',
+        /(?i-mx:centos|fedora|redhat)/ => '/var/log/httpd',
+        default => '/var/log/apache2',
+    }
+    $logdir_mode = $::operatingsystem ? {
+        default => '0755',
+    }
+    $logdir_owner = $::operatingsystem ? {
+        default => 'root',
+    }
+    $logdir_group = $::operatingsystem ? {
+        default => 'adm',
+    }
+
+
+    # Graceful restart command
+    # See http://httpd.apache.org/docs/2.0/stopping.html
+    $gracefulrestart = $::operatingsystem ? {
+        default => 'apache2ctl graceful',
+    }
+    
+    # Command to run a configuration file syntax test.
+    # See http://httpd.apache.org/docs/2.0/stopping.html
+    $configtest = $::operatingsystem ? {
+        default => 'apache2ctl configtest',
+    }
+
+}
+
