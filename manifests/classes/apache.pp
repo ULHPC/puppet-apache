@@ -189,6 +189,7 @@ class apache::common {
                     group   => "${apache::params::configdir_group}",
                     mode    => "${apache::params::configdir_mode}",
                     ensure  => 'directory',
+                    # seltype => 'httpd_config_t',
                     notify  => Exec["${apache::params::gracefulrestart}"],
                     require => Package['apache2'],
         }
@@ -271,6 +272,17 @@ class apache::redhat inherits apache::common {
     Apache::Module {
         require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ]
     }
+
+    # Add seltype 'httpd_config_t' for /etc/httpd and {mods,sites}-{enabled,available} files
+    # TODO
+
+    # this module is statically compiled on debian and must be enabled here
+    apache::module { 'log_config':
+        ensure => "${apache::ensure}",
+        notify => Exec["${apache::params::gracefulrestart}"],
+    }
+
+
 
 }
 
