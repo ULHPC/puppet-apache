@@ -114,7 +114,7 @@ class apache::common {
         notify => Exec["${apache::params::gracefulrestart}"],
     }
 
-    
+
     if $apache::ensure == 'present' {
 
         # main root configuration dir (/etc/apache2 on Debian systems)
@@ -252,7 +252,27 @@ class apache::debian inherits apache::common {
 # = Class: apache::redhat
 #
 # Specialization class for Redhat systems
-class apache::redhat inherits apache::common { }
+class apache::redhat inherits apache::common {
+
+    file { [
+            '/usr/local/sbin/a2ensite',
+            '/usr/local/sbin/a2dissite',
+            '/usr/local/sbin/a2enmod',
+            '/usr/local/sbin/a2dismod'
+            ] :
+                ensure => "${apache::ensure}",
+                mode   => '0755',
+                owner  => 'root',
+                group  => 'root',
+                source => "puppet:///apache/usr/local/sbin/a2X.redhat",
+    }
+
+    # Add dependency for the apache::module definition
+    Apache::Module {
+        require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ]
+    }
+
+}
 
 
 
