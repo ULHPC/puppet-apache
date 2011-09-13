@@ -2,10 +2,8 @@
 # Author::    Sebastien Varrette (<Sebastien.Varrette@uni.lu>)
 # Copyright:: Copyright (c) 2011 Sebastien Varrette (www[http://varrette.gforge.uni.lu])
 # License::   GPLv3
-#
-# Time-stamp: <Tue 2011-09-13 18:22 svarrette>
 # ------------------------------------------------------------------------------
-# = Class: apache-dev
+# = Class: apache::dev
 #
 # This class installs Apache development libraries
 #
