@@ -95,11 +95,13 @@ class apache::params {
     }
 
     # to activate SSL with apache
-    $ssl_packages = $::operatingsystem ? {
-        /(?i-mx:ubuntu|debian)/        => [ 'apache-ssl' ],
-        /(?i-mx:centos|fedora|redhat)/ => [ 'mod_ssl' ],
-        default => [ 'apache-ssl' ]
+    $ssl_packagename = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => 'apache-ssl',
+        /(?i-mx:centos|fedora|redhat)/ => 'mod_ssl',
+        default => 'apache-ssl'
     }
+    # The script provided to generate SSL certificates
+    $generate_ssl_cert = '/usr/local/sbin/generate-ssl-cert.sh'
 
     # to activate the security module
     $mod_security_packagename = $::operatingsystem ? {
@@ -162,6 +164,10 @@ class apache::params {
     }
     $configdir_group = $::operatingsystem ? {
         default => 'root',
+    }
+    $configdir_seltype = $::operatingsystem ? {
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd_config_t',
+        default => undef,
     }
 
     # Virtual host dir

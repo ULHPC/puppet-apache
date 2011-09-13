@@ -84,10 +84,21 @@ class apache::common {
     }
 
     if ($apache::use_ssl) {
-        package { $apache::params::ssl_packages :
+
+        package { "${apache::params::ssl_packagename}" :
             ensure  => "${apache::ensure}",
             require => Package['apache2']
         }
+
+        file { "${apache::params::generate_ssl_cert}": 
+            source  => "puppet:///apache/generate-ssl-cert.sh",
+            mode    => '0755',
+            user    => 'root',
+            group   => 'root',
+            ensure  => "${apache::ensure}",
+            #require => Package['openssl']
+        }
+
     }
 
     # Apache user
@@ -189,7 +200,7 @@ class apache::common {
                     group   => "${apache::params::configdir_group}",
                     mode    => "${apache::params::configdir_mode}",
                     ensure  => 'directory',
-                    # seltype => 'httpd_config_t',
+                    seltype => "${apache::params::configdir_seltype}",
                     notify  => Exec["${apache::params::gracefulrestart}"],
                     require => Package['apache2'],
         }
@@ -200,6 +211,7 @@ class apache::common {
             owner   => "${apache::params::configdir_owner}",
             group   => "${apache::params::configdir_group}",
             mode    => "${apache::params::configfile_mode}",
+            seltype => "${apache::params::configdir_seltype}",
             content => template("apache/${apache::params::vhost_default}"),
             require => File["${apache::params::vhost_availabledir}"],
         }
