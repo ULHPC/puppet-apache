@@ -51,7 +51,7 @@ class apache::params {
         ''      => [ '443' ],
         default => $apache_ssl_port,
     }
-    
+
     # Whether or not to activate SSL for virtual hosts
     $use_ssl = $apache_use_ssl ? {
         ''      => true,
@@ -62,6 +62,12 @@ class apache::params {
     $redirect_ssl  = $apache_redirect_ssl ? {
         ''      => false,
         default => "${apache_redirect_ssl}",
+    }
+
+    # This is the name of the group configured in sudoers to manage apache
+    $admin_group = $apache_admin_group ? {
+        ''      => 'apache-admin',
+        default => "${apache_admin_group}",
     }
 
     #### MODULE INTERNAL VARIABLES  #########
@@ -131,7 +137,6 @@ class apache::params {
         /(?i-mx:centos|fedora|redhat)/ => 'apache',
         default => 'www-data'
     }
-
 
     # Main config dir
     $configdir = $::operatingsystem ? {
@@ -243,8 +248,12 @@ class apache::params {
         default                 => '/usr/local/sbin/a2dismod'
     }
 
-
-
-
+    # This is the list of commands to authorize for the users put in the
+    # $apache::admin_group group (inside the /etc/sudoers file)
+    $admin_cmd = $apache_admin_group ? {
+        /(?i-mx:ubuntu|debian)/        => [ '/usr/sbin/apache2ctl' ],
+        /(?i-mx:centos|fedora|redhat)/ => [ '/usr/sbin/apache2ctl', "/sbin/service ${servicename}" ],
+        default => [ ],
+    }
 }
 
