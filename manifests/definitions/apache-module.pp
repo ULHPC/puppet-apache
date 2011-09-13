@@ -48,7 +48,8 @@
 #
 # [Remember: No empty lines between comments and class definition]
 #
-define apache::module($ensure = 'present', $content='', $source='') {
+define apache::module($ensure = 'present' #, $content='', $source=''
+) {
 
     include apache::params
 
@@ -57,23 +58,24 @@ define apache::module($ensure = 'present', $content='', $source='') {
     $modulename = $name
 
     # if content is passed, use that, else if source is passed use that
-    case $content {
-        '': {
-            case $source {
-                '': {
-                    crit('No content nor source have been  specified')
-                }
-                default: { $real_source = $source }
-            }
-        }
-        default: { $real_content = $content }
-    }
+    # case $content {
+    #     '': {
+    #         case $source {
+    #             '': {
+    #                 crit('No content nor source have been  specified')
+    #             }
+    #             default: { $real_source = $source }
+    #         }
+    #     }
+    #     default: { $real_content = $content }
+    # }
 
     case $ensure {
         present: {
-            # TODO: this might not work if $apache::ensure != present because of the dependency on Service['apache2']...
+            # TODO: this might not work if $apache::ensure != present because of
+            # the dependency on Service['apache2']... 
             exec { "enable apache module $name":
-                command => "/usr/sbin/a2enmod $name",
+                command => "${apache::params::a2enmod} $name",
                 unless  => "/bin/sh -c '[ -L ${apache::params::mods_enableddir}/${name}.load ] \\
                 && [ ${apache::params::mods_enableddir}/${name}.load -ef ${apache::params::mods_availabledir}/${name}.load ]'",
                 before  => Service['apache2'],
@@ -83,7 +85,7 @@ define apache::module($ensure = 'present', $content='', $source='') {
         }
         absent: {
             exec { "disable apache module $name":
-                command => "/usr/sbin/a2dismod $name",
+                command => "${apache::params::a2dismod} $name",
                 onlyif  => "/bin/sh -c '[ -L ${apache::params::mods_enableddir}/${name}.load ] \\
                 && [ ${apache::params::mods_enableddir}/${name}.load -ef ${apache::params::mods_availabledir}/${name}.load ]'",
                 before  => Service['apache2'],
@@ -92,7 +94,7 @@ define apache::module($ensure = 'present', $content='', $source='') {
             }
         }
         default: {
-            fail "Invalid 'ensure' value '$ensure' for apache::module"
+            fail "Invalid 'ensure' parameter (current value '$ensure') for apache::module"
         }
     }
 }
