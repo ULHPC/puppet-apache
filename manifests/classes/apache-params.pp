@@ -101,6 +101,13 @@ class apache::params {
         default => [ 'apache-ssl' ]
     }
 
+    # to activate the security module
+    $mod_security_packagename = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => 'libapache-mod-security',
+        /(?i-mx:centos|fedora|redhat)/ => 'mod_security',
+        default => [ 'apache-security' ]
+    }
+    
     $servicename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'apache2',
         /(?i-mx:centos|fedora|redhat)/ => 'httpd',
