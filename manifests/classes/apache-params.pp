@@ -40,55 +40,71 @@ class apache::params {
         ''      => 'tcp',
         default => "${apache_protocol}",
     }
-    # The port number. Used by monitor and firewall class. The default is 22.
+    # The port number. Used by monitor and firewall class. The default is 80.
     $port = $apache_port ? {
         ''      => [ '80' ],
         default => $apache_port,
     }
 
+    # The SSL port number. Used by monitor and firewall class. The default is 443.
+    $ssl_port = $apache_ssl_port ? {
+        ''      => [ '443' ],
+        default => $apache_ssl_port,
+    }
     
-    
+    # Whether or not to activate SSL for virtual hosts
+    $use_ssl = $apache_use_ssl ? {
+        ''      => true,
+        default => "${apache_use_ssl}",
+    }
+
+    # Whether or not to redirect http requests to https (require mod_rewrite)
+    $redirect_ssl  = $apache_redirect_ssl ? {
+        ''      => false,
+        default => "${apache_redirect_ssl}",
+    }
+
     #### MODULE INTERNAL VARIABLES  #########
     # (Modify to adapt to unsupported OSes)
     #######################################
     # package for apache2
     $packagename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'apache2',
-        /(?i-mx:centos|fedora|redhat)/ => 'httpd',        
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd',
         default => 'apache2'
     }
 
     # associated dev packages
     $dev_packages = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => [ 'libaprutil1-dev', 'libapr1-dev', 'apache2-prefork-dev' ],
-        /(?i-mx:centos|fedora|redhat)/ => [ 'httpd-devel' ],        
+        /(?i-mx:centos|fedora|redhat)/ => [ 'httpd-devel' ],
         default => [ 'apache-dev' ]
     }
 
     # to activate PHP with apache
     $php_packages = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => [ 'libapache2-mod-php5' ],
-        /(?i-mx:centos|fedora|redhat)/ => [ 'php' ],        
+        /(?i-mx:centos|fedora|redhat)/ => [ 'php' ],
         default => [ 'php' ]
     }
 
     # to activate SSL with apache
     $ssl_packages = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => [ 'apache-ssl' ],
-        /(?i-mx:centos|fedora|redhat)/ => [ 'mod_ssl' ],        
+        /(?i-mx:centos|fedora|redhat)/ => [ 'mod_ssl' ],
         default => [ 'apache-ssl' ]
     }
-    
+
     $servicename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'apache2',
-        /(?i-mx:centos|fedora|redhat)/ => 'httpd',        
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd',
         default => 'apache2'
     }
 
     # used for pattern in a service ressource
     $processname = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'apache2',
-        /(?i-mx:centos|fedora|redhat)/ => 'httpd',        
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd',
         default => 'apache2'
     }
 
@@ -102,30 +118,25 @@ class apache::params {
         default => true,
     }
 
-    # user to run (and own) apache service/files 
-    $user = $::operatingsystem ? {        
+    # user to run (and own) apache service/files
+    $user = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'www-data',
-        /(?i-mx:centos|fedora|redhat)/ => 'apache',        
+        /(?i-mx:centos|fedora|redhat)/ => 'apache',
         default => 'www-data'
     }
 
-    # group to run (and own) apache service/files 
-    $group = $::operatingsystem ? {        
+    # group to run (and own) apache service/files
+    $group = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'www-data',
-        /(?i-mx:centos|fedora|redhat)/ => 'apache',        
+        /(?i-mx:centos|fedora|redhat)/ => 'apache',
         default => 'www-data'
     }
 
-    # Whether or not to activate SSL for virtual hosts
-    $use_ssl = true
 
-    # Whether or not to redirect http requests to https (require mod_rewrite)
-    $redirect_ssl  = false
-    
-    # Main config dir 
+    # Main config dir
     $configdir = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => '/etc/apache2',
-        /(?i-mx:centos|fedora|redhat)/ => '/etc/httpd',        
+        /(?i-mx:centos|fedora|redhat)/ => '/etc/httpd',
         default => '/etc/apache2',
     }
     $configdir_mode = $::operatingsystem ? {
@@ -151,8 +162,17 @@ class apache::params {
     # Default virtual host template file
     $vhost_default = $::operatingsystem ? {
         default => 'default-vhost.erb',
-    }  
-    
+    }
+
+    # Apache modules dir
+    $mods_availabledir = $::operatingsystem ? {
+        default => "$configdir/mods-available",
+    }
+    $mods_enableddir = $::operatingsystem ? {
+        default => "$configdir/mods-enabled",
+    }
+
+
     # WWW data dir
     $wwwdir = $::operatingsystem ? {
         default => "/var/www",
@@ -166,7 +186,7 @@ class apache::params {
     $wwwdir_group = $::operatingsystem ? {
         default => 'root',
     }
-    
+
     # cgi-bin dir
     $cgidir = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => '/usr/lib/cgi-bin',
@@ -187,7 +207,7 @@ class apache::params {
     $logdir = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => '/var/log/apache2',
         /(?i-mx:centos|fedora|redhat)/ => '/var/log/httpd',
-        default => '/var/log/apache2',
+        default => '/var/log/apache',
     }
     $logdir_mode = $::operatingsystem ? {
         default => '0755',
@@ -199,18 +219,32 @@ class apache::params {
         default => 'adm',
     }
 
-
     # Graceful restart command
     # See http://httpd.apache.org/docs/2.0/stopping.html
     $gracefulrestart = $::operatingsystem ? {
         default => 'apache2ctl graceful',
     }
-    
+
     # Command to run a configuration file syntax test.
     # See http://httpd.apache.org/docs/2.0/stopping.html
     $configtest = $::operatingsystem ? {
         default => 'apache2ctl configtest',
     }
+
+    # Command to enable an Apache module
+    $a2enmod = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/ => '/usr/sbin/a2enmod',
+        default                 => '/usr/local/sbin/a2enmod'
+    }
+
+    # Command to disable an Apache module
+    $a2dismod = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/ => '/usr/sbin/a2dismod',
+        default                 => '/usr/local/sbin/a2dismod'
+    }
+
+
+
 
 }
 

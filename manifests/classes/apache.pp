@@ -39,9 +39,14 @@
 #
 # [Remember: No empty lines between comments and class definition]
 #
-class apache( $ensure = $apache::params::ensure ) inherits apache::params
+class apache(
+    $ensure  = $apache::params::ensure,
+    $use_ssl = $apache::params::use_ssl,
+    $redirect_ssl = $apache::params::redirect_ssl
+)
+inherits apache::params
 {
-    info ("Configuring apache (with ensure = ${ensure})")
+    info ("Configuring apache (with ensure = ${ensure}, use_ssl = ${use_ssl}, redirect_ssl = ${redirect_ssl})")
 
     if ! ($ensure in [ 'present', 'absent' ]) {
         fail("apache 'ensure' parameter must be set to either 'absent' or 'present'")
@@ -67,10 +72,22 @@ class apache::common {
     # Load the variables used in this module. Check the apache-params.pp file
     require apache::params
 
+    $sslensure = $apache::use_ssl ? {
+        true    => 'present',
+        default => 'absent',
+    }
+
     # Package to install
     package { 'apache2':
-        name    => "${apache::params::packagename}",
-        ensure  => "${apache::ensure}",
+        name   => "${apache::params::packagename}",
+        ensure => "${apache::ensure}",
+    }
+
+    if ($apache::use_ssl) {
+        package { $apache::params::ssl_packages :
+            ensure  => "${apache::ensure}",
+            require => Package['apache2']
+        }
     }
 
     # Apache user
@@ -89,6 +106,12 @@ class apache::common {
     exec { "${apache::params::gracefulrestart}":
         refreshonly => true,
         onlyif      => "${apache::params::configtest}",
+    }
+
+
+    apache::module {'ssl':
+        ensure => $sslensure,
+        notify => Exec["${apache::params::gracefulrestart}"],
     }
 
     
@@ -156,13 +179,18 @@ class apache::common {
         }
 
         # Apache virtual host dir (both available and enabled)
-        file { [ "${apache::params::vhost_availabledir}", "${apache::params::vhost_enableddir}" ]:
-            owner   => "${apache::params::configdir_owner}",
-            group   => "${apache::params::configdir_group}",
-            mode    => "${apache::params::configdir_mode}",
-            ensure  => 'directory',
-            notify  => Exec["${apache::params::gracefulrestart}"],
-            require => Package['apache2'],
+        file { [
+                "${apache::params::vhost_availabledir}",
+                "${apache::params::vhost_enableddir}",
+                "${apache::params::mods_availabledir}",
+                "${apache::params::mods_enableddir}"
+                ]:
+                    owner   => "${apache::params::configdir_owner}",
+                    group   => "${apache::params::configdir_group}",
+                    mode    => "${apache::params::configdir_mode}",
+                    ensure  => 'directory',
+                    notify  => Exec["${apache::params::gracefulrestart}"],
+                    require => Package['apache2'],
         }
 
         # The default virtual host file
@@ -176,12 +204,8 @@ class apache::common {
         }
 
 
-        # TODO: remove default-ssl? 
+        # TODO: remove default-ssl?
 
-        
-
-
-        
         service { 'apache2':
             name       => "${apache::params::servicename}",
             enable     => true,
@@ -212,6 +236,15 @@ class apache::debian inherits apache::common {
         ensure  => "${apache::ensure}",
         require => Package['apache2'],
     }
+
+    if $apache::use_ssl {
+        if !defined(Package['ca-certificates']) {
+            package { 'ca-certificates':
+                ensure => "${apache::ensure}",
+            }
+        }
+    }
+
 
 }
 
