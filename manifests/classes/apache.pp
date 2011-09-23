@@ -84,16 +84,11 @@ class apache::common {
     }
 
     if ($apache::use_ssl) {
-
-        package { "${apache::params::ssl_packagename}" :
-            ensure  => "${apache::ensure}",
-            require => Package['apache2']
-        }
-
-        file { "${apache::params::generate_ssl_cert}": 
-            source  => "puppet:///apache/generate-ssl-cert.sh",
+        
+        file { "${apache::params::generate_ssl_cert}":
+            source  => "puppet:///modules/apache/generate-ssl-cert.sh",
             mode    => '0755',
-            user    => 'root',
+            owner   => 'root',
             group   => 'root',
             ensure  => "${apache::ensure}",
             #require => Package['openssl']
@@ -115,10 +110,11 @@ class apache::common {
 
     # Graceful restart of the apache server
     exec { "${apache::params::gracefulrestart}":
-        refreshonly => true,
+        path        => "/usr/bin:/usr/sbin/:/bin:/sbin",
+        require     => Package['apache2'],
         onlyif      => "${apache::params::configtest}",
+        refreshonly => true,
     }
-
 
     apache::module {'ssl':
         ensure => $sslensure,
@@ -154,8 +150,8 @@ class apache::common {
         # Create the directory to host the default index.html
         file {"${apache::params::wwwdir}/default-html":
             ensure  => 'directory',
-            owner   => "${apache::params::wwwdir_owner}",
-            group   => "${apache::params::wwwdir_group}",
+            owner   => "${apache::params::user}",
+            group   => "${apache::params::group}",
             mode    => "${apache::params::wwwdir_mode}",
             require => File["${apache::params::wwwdir}"],
         }
@@ -163,10 +159,10 @@ class apache::common {
         # ... and populate it with the default index.html
         file {"${apache::params::wwwdir}/default-html/index.html":
             ensure  => "${apache::ensure}",
-            owner   => "${apache::params::wwwdir_owner}",
-            group   => "${apache::params::wwwdir_group}",
+            owner   => "${apache::params::user}",
+            group   => "${apache::params::group}",
             mode    => "${apache::params::configfile_mode}",
-            content => "<html><body><h1>It works!</h1></body></html>\n",
+            content => "<html><body><h1>It works! (default-html)</h1></body></html>\n",
             require => File["${apache::params::wwwdir}/default-html"],
             notify  => Exec["${apache::params::gracefulrestart}"],
         }
@@ -277,12 +273,19 @@ class apache::redhat inherits apache::common {
                 mode   => '0755',
                 owner  => 'root',
                 group  => 'root',
-                source => "puppet:///apache/usr/local/sbin/a2X.redhat",
+                source => "puppet:///modules/apache/usr/local/sbin/a2X.redhat",
     }
 
     # Add dependency for the apache::module definition
     Apache::Module {
         require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ]
+    }
+
+    if ($apache::use_ssl) {
+        package { 'mod_ssl' :
+            ensure  => "${apache::ensure}",
+            require => Package['apache2']
+        }
     }
 
     # Add seltype 'httpd_config_t' for /etc/httpd and {mods,sites}-{enabled,available} files
