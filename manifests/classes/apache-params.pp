@@ -94,12 +94,6 @@ class apache::params {
         default => [ 'php' ]
     }
 
-    # to activate SSL with apache
-    $ssl_packagename = $::operatingsystem ? {
-        /(?i-mx:ubuntu|debian)/        => 'apache-ssl',
-        /(?i-mx:centos|fedora|redhat)/ => 'mod_ssl',
-        default => 'apache-ssl'
-    }
     # The script provided to generate SSL certificates
     $generate_ssl_cert = '/usr/local/sbin/generate-ssl-cert.sh'
 
@@ -220,6 +214,10 @@ class apache::params {
     $cgidir_group = $::operatingsystem ? {
         default => 'root',
     }
+    $cgidir_seltype = $::operatingsystem ? {
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd_sys_script_exec_t',
+        default => undef,
+    }
 
     # Apache2 log directory
     $logdir = $::operatingsystem ? {
@@ -236,6 +234,17 @@ class apache::params {
     $logdir_group = $::operatingsystem ? {
         default => 'adm',
     }
+    $logdir_seltype = $::operatingsystem ? {
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd_log_t',
+        default => undef,
+    }
+
+    # Vhost private data
+    $privatedir_seltype = $::operatingsystem ? {
+        /(?i-mx:centos|fedora|redhat)/ => 'httpd_sys_content_t',
+        default => undef,
+    }
+    
 
     # Graceful restart command
     # See http://httpd.apache.org/docs/2.0/stopping.html
@@ -259,6 +268,18 @@ class apache::params {
     $a2dismod = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/ => '/usr/sbin/a2dismod',
         default                 => '/usr/local/sbin/a2dismod'
+    }
+
+        # Command to enable an Apache site (aka vhost)
+    $a2ensite = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/ => '/usr/sbin/a2ensite',
+        default                 => '/usr/local/sbin/a2ensite'
+    }
+
+    # Command to disable an Apache site (aka vhost)
+    $a2dissite = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/ => '/usr/sbin/a2dissite',
+        default                 => '/usr/local/sbin/a2dissite'
     }
 
     # This is the list of commands to authorize for the users put in the
