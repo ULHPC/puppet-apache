@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # = Defines: apache::vhost
 #
-# This class installs Apache Virtual Hosts i.e. a given site to be managed by Apache
+# This definition installs Apache Virtual Hosts i.e. a given site to be managed by Apache
 #
 # == Pre-requisites
 #
