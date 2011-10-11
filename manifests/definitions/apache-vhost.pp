@@ -108,6 +108,14 @@ define apache::vhost(
             require => Package['apache2'],
             notify  => Exec["${apache::params::gracefulrestart}"],
         }
+    } else {
+        exec { "disable default virtual host $servername":
+            command => "${apache::params::a2dissite} default",
+            path => "/usr/bin:/usr/sbin/:/bin:/sbin",
+            onlyif  => "test -L '${apache::params::vhost_enableddir}/000-default'",
+            require => Package['apache2'],
+            notify  => Exec["${apache::params::gracefulrestart}"],
+        }    
     }
 
     case $ensure {
