@@ -42,6 +42,7 @@
 class apache(
     $ensure  = $apache::params::ensure,
     $use_ssl = $apache::params::use_ssl,
+    $use_php = $apache::params::use_php,
     $redirect_ssl = $apache::params::redirect_ssl
 )
 inherits apache::params
@@ -76,11 +77,19 @@ class apache::common {
         true    => 'present',
         default => 'absent',
     }
+    $phpensure = $apache::use_php ? {
+        true    => 'present',
+        default => 'absent',
+    }
 
     # Package to install
     package { 'apache2':
         name   => "${apache::params::packagename}",
         ensure => "${apache::ensure}",
+    }
+
+    package { $apache::params::php_packages:
+        ensure => "${phpensure}"
     }
 
     if ($apache::use_ssl) {
@@ -95,7 +104,7 @@ class apache::common {
         }
 
     }
-
+    
     # Apache user
     user { "${apache::params::user}":
         ensure  => "${apache::ensure}",
@@ -121,6 +130,12 @@ class apache::common {
         notify => Exec["${apache::params::gracefulrestart}"],
     }
 
+    apache::module {'php5':
+        ensure => $phpensure,
+        notify => Exec["${apache::params::gracefulrestart}"],
+    }
+
+    
 
     if $apache::ensure == 'present' {
 
@@ -156,13 +171,23 @@ class apache::common {
             require => File["${apache::params::wwwdir}"],
         }
 
-        # ... and populate it with the default index.html
-        file {"${apache::params::wwwdir}/default-html/index.html":
+        $indexfile = $use_php ? {
+            true    => 'index.php',
+            default => 'index.html'
+        }
+        
+        $indexfile_content = $use_php ? {
+            true    => "<?php phpinfo(); ?>",
+            default => " "        
+        }
+
+        # ... and populate it with the default index.{html|php}
+        file {"${apache::params::wwwdir}/default-html/${indexfile}":
             ensure  => "${apache::ensure}",
             owner   => "${apache::params::user}",
             group   => "${apache::params::group}",
             mode    => "${apache::params::configfile_mode}",
-            content => "<html><body><h1>It works! (default-html)</h1></body></html>\n",
+            content => "<html><body><h1>It works! (default-html)</h1>${indexfile_content}</body></html>\n",
             require => File["${apache::params::wwwdir}/default-html"],
             notify  => Exec["${apache::params::gracefulrestart}"],
         }

@@ -57,7 +57,13 @@ class apache::params {
         ''      => true,
         default => "${apache_use_ssl}",
     }
-
+    
+    # Whether or not to activate PHP 
+    $use_php = $apache_use_php ? {
+        ''      => false,
+        default => "${apache_use_php}",
+    }
+    
     # Whether or not to redirect http requests to https (require mod_rewrite)
     $redirect_ssl  = $apache_redirect_ssl ? {
         ''      => false,
