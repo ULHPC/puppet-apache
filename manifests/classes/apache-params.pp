@@ -100,9 +100,6 @@ class apache::params {
         default => [ 'php' ]
     }
 
-    # The script provided to generate SSL certificates
-    $generate_ssl_cert = '/usr/local/sbin/generate-ssl-cert.sh'
-
     # to activate the security module
     $mod_security_packagename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'libapache-mod-security',

@@ -92,18 +92,18 @@ class apache::common {
         ensure => "${phpensure}"
     }
 
-    if ($apache::use_ssl) {
+    # if ($apache::use_ssl) {
         
-        file { "${apache::params::generate_ssl_cert}":
-            source  => "puppet:///modules/apache/generate-ssl-cert.sh",
-            mode    => '0755',
-            owner   => 'root',
-            group   => 'root',
-            ensure  => "${apache::ensure}",
-            #require => Package['openssl']
-        }
+    #     # file { "${apache::params::generate_ssl_cert}":
+    #     #     source  => "puppet:///modules/apache/generate-ssl-cert.sh",
+    #     #     mode    => '0755',
+    #     #     owner   => 'root',
+    #     #     group   => 'root',
+    #     #     ensure  => "${apache::ensure}",
+    #     #     #require => Package['openssl']
+    #     # }
 
-    }
+    # }
     
     # Apache user
     user { "${apache::params::user}":
