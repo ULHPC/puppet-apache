@@ -16,23 +16,32 @@
 # [*ensure*]
 #   default to 'present', can be 'absent' (BEWARE: it will remove the associated
 #   directory in /var/www) or 'disabled'
+#   Default: 'present'
 #
 # [*port*]
-#  The port to configure the host on
+#  The port to configure the host on (for regular http access).
+#  Default: 80
 #
 # [*documentroot*]
-#  Specifies the value of the 'DocumentRoot' directive. Default to
-#  /var/www/<vhostname>/htdocs
+#  Specifies the value of the 'DocumentRoot' directive.
+#  Default: /var/www/<vhostname>/htdocs
 #
 # [*serveradmin*]
-#  The vhost admin (i.e. its mail address), default to 'webmaster@localhost'
+#  The vhost admin (i.e. its mail address).
+#  Default: 'webmaster@localhost'
 #
 # [*use_ssl*]
-#  The $use_ssl option is set true or false to enable SSL for this Virtual Host
-#  NOT YET IMPLEMENTED
+#  The $use_ssl option is set true or false to enable SSL for this Virtual Host.
+#  If set to true, the default vhost for http access will be configured for an
+#  automatic redirection to the https access.
+#  Also, unless the various sources of the certificate etc. has been provided, a
+#  self-signed certificate will be created.
+#  In all cases, see all the $ssl* parameters
+#  Default: ${apache::use_ssl}
 #
 # [*priority*]
-#  Set the priority of the site (typically between 000 and 990), default to 010
+#  Set the priority of the site (typically between 000 and 990).
+#  Default: 010
 #
 # [*options*]
 #  the option for the Directory directive.
@@ -42,11 +51,62 @@
 #
 # [*enable_default*]
 #  Whether or not to activate the default website (the one in
-#  /var/www/default-html). Default to 'true'
+#  /var/www/default-html).
+#  Default: true
 #
 # [*testing_mode]
-#  This puts a sample 'inde.html' in the documentroot to check that the virtual
+#  This puts a sample 'index.html' in the documentroot to check that the virtual
 #  is indeed activated.
+#  Default: false
+#
+# [*sslport*]
+#  Only meaningfull if use_ssl = true
+#  The port to configure for https access
+#  Default: 443
+#
+# [*ssl_certfile_source*]
+#  Only meaningfull if use_ssl = true
+#  optional source URL of the certificate, if the default self-signed generated
+#  one doesn't suit.
+#  If this parameter IS NOT specified, then it is assumed one expect the
+#  generation of a self-signed certificate.
+#
+# [*ssl_keyfile_source*]
+#  Only meaningfull if use_ssl = true and ssl_certfile_source != ''
+#   optional source URL of the private key.
+#
+# [*ssl_cacertfile_source*]
+#   optional source URL of the CA certificate.
+#
+# [*ssl_certchainfile_source*]
+#   optional source URL of the CA chain certificate.
+#
+# [*ssl_crlfile_source*]
+#   optional source URL of the CRL.
+#
+# [*ssl_cert_country*]
+#   Self-signed certificate countryName
+#   Default: 'LU'
+#
+# [*ssl_cert_state*]
+#   Self-signed certificate stateOrProvinceName
+#
+# [*ssl_cert_locality*]
+#   Self-signed certificate localityName
+#   Default: 'Luxembourg'
+#
+# [*ssl_cert_organisation*]
+#   Self-signed certificate organizationName
+#   Default: 'University of Luxembourg'
+#
+# [*ssl_cert_organisational_unit*]
+#   Self-signed certificate organizationalUnitName
+#   Default: 'Computer Science and Communication (CSC) Research Unit'
+#
+# [*ssl_cert_days*]
+#   Self-signed certificate validity
+#   Default: 10 years
+#
 #
 # == Requires:
 #
@@ -56,8 +116,17 @@
 #
 #  apache::vhost { 'localtest.domain.com':
 #        ensure       => 'present',
-#        testing_mode => true,          
+#        testing_mode => true,
 #   }
+# 
+#   To activate an SSL vhost:
+#
+#    apache::vhost { 'puppet-test':
+#        ensure  => 'present',
+#        use_ssl => true,
+#        testing_mode => true,
+#    }
+
 #
 # == Warnings
 #
@@ -78,13 +147,21 @@ define apache::vhost(
     $aliases        = [],
     $enable_default = true,
     $testing_mode   = false,
-    $ssl_certfile   = '',
-    $ssl_keyfile    = '',
-    $ssl_certchainfile = '',
-    $ssl_cacertdir  = '',
-    $ssl_cacertfile = '',
-    $ssl_crldir     = '',
-    $ssl_crlfile    = '',    
+    # Below are SSL-only parameters, only relevant if $use_ssl = true
+    $sslport                  = '443',
+    $ssl_certfile_source      = '',
+    $ssl_keyfile_source       = '',
+    $ssl_cacertfile_source    = '',
+    $ssl_certchainfile_source = '',
+    $ssl_crlfile_source       = '',
+    $ssl_cacertdir            = '',
+    $ssl_crldir               = '',
+    $ssl_cert_country         = 'LU',
+    $ssl_cert_state           = false,
+    $ssl_cert_locality        = 'Luxembourg',
+    $ssl_cert_organisation    = 'University of Luxembourg',
+    $ssl_cert_organisational_unit = 'Computer Science and Communication (CSC) Research Unit',
+    $ssl_cert_days            = 3650
 )
 {
 
@@ -94,17 +171,37 @@ define apache::vhost(
     # of the ServerName directive
     $servername = $name
 
+    # Variables setup
     $real_serveradmin = $serveradmin ? {
         ''      => 'webmaster@localhost',
         default => "${serveradmin}"
     }
-
     $real_documentroot = $documentroot ? {
         ''      => "${apache::params::wwwdir}/${servername}/htdocs",
         default => "${documentroot}"
     }
 
+    # Specific SSL variables
+    if ($use_ssl) {
+        include openssl::params
 
+        $ssl_certfile = "${apache::params::wwwdir}/${servername}/certificates/${servername}${openssl::params::cert_filename_suffix}"
+        $ssl_keyfile  = "${apache::params::wwwdir}/${servername}/certificates/${servername}${openssl::params::key_filename_suffix}"
+        $ssl_cacertfile = $ssl_cacertfile_source ? {
+            ''      => "${openssl::params::default_ssl_cacert}",
+            default => "${apache::params::wwwdir}/${servername}/certificates/cacert.pem"
+        }
+        # Server Certificate Chain
+        $ssl_certchainfile = $ssl_certchainfile_source ? {
+            ''      => '',
+            default => "${apache::params::wwwdir}/${servername}/certificates/cacertchain.crt"
+        }
+        # Certificate Revocation Lists (CRL)
+        $ssl_crlfile = $ssl_crlfile_source ? {
+            ''      => '',
+            default => "${apache::params::wwwdir}/${servername}/certificates/ca-bundle.crl"
+        }
+    }
 
     # check if default virtual host is enabled
     if $enable_default {
@@ -115,14 +212,15 @@ define apache::vhost(
             require => Package['apache2'],
             notify  => Exec["${apache::params::gracefulrestart}"],
         }
-    } else {
+    }
+    else {
         exec { "disable default virtual host $servername":
             command => "${apache::params::a2dissite} default",
             path => "/usr/bin:/usr/sbin/:/bin:/sbin",
             onlyif  => "test -L '${apache::params::vhost_enableddir}/000-default'",
             require => Package['apache2'],
             notify  => Exec["${apache::params::gracefulrestart}"],
-        }    
+        }
     }
 
     case $ensure {
@@ -138,6 +236,19 @@ define apache::vhost(
                 seltype => "${apache::params::configdir_seltype}",
                 require => Package['apache2'],
                 notify  => Exec["${apache::params::gracefulrestart}"],
+            }
+
+            if ($use_ssl) {
+                file { "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl":
+                    content => template('apache/vhost-ssl.erb'),
+                    ensure  => 'present',
+                    owner   => 'root',
+                    group   => 'root',
+                    mode    => '0644',
+                    seltype => "${apache::params::configdir_seltype}",
+                    require => Package['apache2'],
+                    notify  => Exec["${apache::params::gracefulrestart}"],
+                }
             }
 
             # create the directory to host the www files
@@ -216,6 +327,106 @@ define apache::vhost(
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
 
+            # place holder for SSL certificates
+            if ($use_ssl) {
+                file { "${apache::params::wwwdir}/${servername}/certificates":
+                    ensure  => 'directory',
+                    owner   => "${apache::params::user}",
+                    group   => "${apache::params::group}",
+                    mode    => "${apache::params::wwwdir_mode}",
+                    #seltype => "${apache::params::privatedir_seltype}",
+                    require => File["${apache::params::wwwdir}/${servername}"],
+                }
+
+                # Setup the certificates
+                if ($ssl_certfile_source != '') {
+                    # The optional source URL of the certificate has been passed
+                    file { "$ssl_certfile":
+                        ensure  => 'file',
+                        owner   => "${apache::params::user}",
+                        group   => "${apache::params::group}",
+                        mode    => '0644',
+                        seltype => "${apache::params::certificates_seltype}",
+                        source  => "${ssl_certfile_source}",
+                        require => File["${apache::params::wwwdir}/${servername}/certificates"],
+                    }
+                    # The associated keyfile should have been passed too...
+                    if ($ssl_keyfile_source != '') {
+                        file { "$ssl_keyfile":
+                            ensure  => 'file',
+                            owner   => "${apache::params::user}",
+                            group   => "${apache::params::group}",
+                            mode    => '0600',
+                            seltype => "${apache::params::certificates_seltype}",
+                            source  => "${ssl_keyfile_source}",
+                            require => File["${apache::params::wwwdir}/${servername}/certificates"],
+                        }
+                    }
+                    else {
+                        # Extra protection
+                        fail("the source of the key file of the certificate should have been passed")
+                    }
+                    # ... and also the CA certificate
+                    if ($ssl_cacertfile_source != '') {
+                        file { "$ssl_cacertfile":
+                            ensure  => 'file',
+                            owner   => "${apache::params::user}",
+                            group   => "${apache::params::group}",
+                            mode    => '0600',
+                            seltype => "${apache::params::certificates_seltype}",
+                            source  => "${ssl_cacertfile_source}",
+                            require => File["${apache::params::wwwdir}/${servername}/certificates"],
+                        }
+                    }
+                    # or eventually the certification chain
+                    if ($ssl_certchainfile_source != '') {
+                        file { "$ssl_certchainfile":
+                            ensure  => 'file',
+                            owner   => "${apache::params::user}",
+                            group   => "${apache::params::group}",
+                            mode    => '0600',
+                            seltype => "${apache::params::certificates_seltype}",
+                            source  => "${ssl_certchainfile_source}",
+                            require => File["${apache::params::wwwdir}/${servername}/certificates"],
+                        }
+                    }
+                }
+                else {
+                    # here $ssl_certfile_source = '' i.e. one expects Puppet to
+                    # generate a self-signed certificate for the site
+                    openssl::x509::generate { "${servername}":
+                        email        => "${serveradmin}",
+                        commonname   => "${fqdn}",
+                        ensure       => "${ensure}",
+                        country      => "${ssl_cert_country}",
+                        state        => "${ssl_cert_state}",
+                        locality     => "${ssl_cert_locality}",
+                        organisation => "${ssl_cert_organisation}",
+                        organisational_unit => "${ssl_cert_organisational_unit}",
+                        days         => "${ssl_cert_days}",
+                        basedir      => "${apache::params::wwwdir}/${servername}/certificates",
+                        owner        => "${apache::params::user}",
+                        group        => "${apache::params::group}",
+                        self_signed  => true,
+                        require      => File["${apache::params::wwwdir}/${servername}/certificates"]
+                    }
+                }
+
+                if ($ssl_crlfile_source != '') {
+                    file { "$ssl_crlfile":
+                        ensure => 'file',
+                        owner  => "${apache::params::user}",
+                        group  => "${apache::params::group}",
+                        mode   => '0600',
+                        source => "${ssl_crlfile_source}",
+                        require => File["${apache::params::wwwdir}/${servername}/certificates"],
+                    }
+                }
+
+
+            }
+
+
             # README file
             file { "${apache::params::wwwdir}/${servername}/README":
                 content => template('apache/README_vhost.erb'),
@@ -240,10 +451,24 @@ define apache::vhost(
                             File["${apache::params::wwwdir}/${servername}/private"],
                             ],
                 notify  => Exec["${apache::params::gracefulrestart}"],
-
             }
-
-
+            if ($use_ssl) {
+                exec{ "enable '${servername}' SSL vhost":
+                    command => "${apache::params::a2ensite} ${priority}-${servername}-ssl",
+                    path => "/usr/bin:/usr/sbin/:/bin:/sbin",
+                    unless  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}-ssl'",
+                    require => [
+                                Package['apache2'],
+                                File["${apache::params::vhost_availabledir}/${priority}-${servername}-ssl"],
+                                File["${apache::params::wwwdir}/${servername}/htdocs"],
+                                File["${apache::params::wwwdir}/${servername}/cgi-bin"],
+                                File["${apache::params::wwwdir}/${servername}/logs"],
+                                File["${apache::params::wwwdir}/${servername}/private"],
+                                File["${apache::params::wwwdir}/${servername}/certificates"],
+                                ],
+                    notify  => Exec["${apache::params::gracefulrestart}"],
+                }
+            }
         }
 
         absent: {
@@ -251,7 +476,7 @@ define apache::vhost(
                 [
                  "${apache::params::vhost_enableddir}/${priority}-${servername}",
                  "${apache::params::vhost_availabledir}/${priority}-${servername}",
-                 "${apache::params::wwwdir}/${servername}",                 
+                 "${apache::params::wwwdir}/${servername}",
                  ]:
                      ensure  => 'absent',
                      recurse => true,
@@ -263,8 +488,25 @@ define apache::vhost(
                 command => "${apache::params::a2dissite} ${priority}-${servername}",
                 notify  => Exec["${apache::params::gracefulrestart}"],
                 require => Package['apache2'],
-                onlyif => "/bin/sh -c '[ -L $wwwconf/sites-enabled/$name ] \\
-                && [ $wwwconf/sites-enabled/$name -ef $wwwconf/sites-available/$name ]'",
+                onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}'",
+            }
+            if ($use_ssl) {
+                file {
+                    [
+                     "${apache::params::vhost_enableddir}/${priority}-${servername}-ssl",
+                     "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl"
+                     ]:
+                         ensure  => 'absent',
+                         force   => true,
+                         require => Exec["disable SSL vhost ${servername}"]
+                }
+                exec { "disable SSL vhost ${servername}":
+                    command => "${apache::params::a2dissite} ${priority}-${servername}-ssl",
+                    notify  => Exec["${apache::params::gracefulrestart}"],
+                    require => Package['apache2'],
+                    onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}-ssl'",
+                }
+
             }
 
 
@@ -276,13 +518,26 @@ define apache::vhost(
                 command => "${apache::params::a2dissite} ${priority}-${servername}",
                 notify  => Exec["${apache::params::gracefulrestart}"],
                 require => Package['apache2'],
-                onlyif => "/bin/sh -c '[ -L $wwwconf/sites-enabled/$name ] \\
-                && [ $wwwconf/sites-enabled/$name -ef $wwwconf/sites-available/$name ]'",
+                onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}'",
             }
-            file{ "${apache::params::vhost_enableddir}/${priority}-${servername}": 
+            file{ "${apache::params::vhost_enableddir}/${priority}-${servername}":
                 ensure  => absent,
                 require => Exec["disable vhost ${servername}"]
             }
+            
+            if ($use_ssl) {
+                exec { "disable SSL vhost ${servername}":
+                    command => "${apache::params::a2dissite} ${priority}-${servername}-ssl",
+                    notify  => Exec["${apache::params::gracefulrestart}"],
+                    require => Package['apache2'],
+                    onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}-ssl'",
+                }
+                file{ "${apache::params::vhost_enableddir}/${priority}-${servername}-ssl":
+                    ensure  => absent,
+                    require => Exec["disable SSL vhost ${servername}"]
+                }
+            }
+
         }
         default: { err ( "Unknown ensure value: '${ensure}'" ) }
     }
