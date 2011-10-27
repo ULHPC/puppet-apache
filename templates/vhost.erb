@@ -20,8 +20,8 @@
     SSLEngine       Off
 
 <% if use_ssl -%>
-	# Automatic HTTP to HTTPS redirection
-	RewriteEngine   on
+    # Automatic HTTP to HTTPS redirection
+    RewriteEngine   on
     RewriteCond     %{SERVER_PORT} ^80$
     RewriteRule     ^(.*)$ https://%{SERVER_NAME}$1 [L,R]
 <% else -%>
