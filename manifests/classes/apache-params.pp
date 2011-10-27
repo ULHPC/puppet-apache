@@ -57,13 +57,13 @@ class apache::params {
         ''      => true,
         default => "${apache_use_ssl}",
     }
-    
-    # Whether or not to activate PHP 
+
+    # Whether or not to activate PHP
     $use_php = $apache_use_php ? {
         ''      => false,
         default => "${apache_use_php}",
     }
-    
+
     # Whether or not to redirect http requests to https (require mod_rewrite)
     $redirect_ssl  = $apache_redirect_ssl ? {
         ''      => false,
@@ -106,7 +106,7 @@ class apache::params {
         /(?i-mx:centos|fedora|redhat)/ => 'mod_security',
         default => [ 'apache-security' ]
     }
-    
+
     $servicename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'apache2',
         /(?i-mx:centos|fedora|redhat)/ => 'httpd',
@@ -247,7 +247,13 @@ class apache::params {
         /(?i-mx:centos|fedora|redhat)/ => 'httpd_sys_content_t',
         default => undef,
     }
-    
+
+    # Certificates
+    $certificates_seltype = $::operatingsystem ? {
+        /(?i-mx:centos|fedora|redhat)/ => 'cert_t',
+        default => undef,
+    }
+
 
     # Graceful restart command
     # See http://httpd.apache.org/docs/2.0/stopping.html
@@ -273,7 +279,7 @@ class apache::params {
         default                 => '/usr/local/sbin/a2dismod'
     }
 
-        # Command to enable an Apache site (aka vhost)
+    # Command to enable an Apache site (aka vhost)
     $a2ensite = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/ => '/usr/sbin/a2ensite',
         default                 => '/usr/local/sbin/a2ensite'
