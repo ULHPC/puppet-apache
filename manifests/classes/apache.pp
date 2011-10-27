@@ -92,8 +92,6 @@ class apache::common {
         ensure => "${phpensure}"
     }
 
-    # if ($apache::use_ssl) {
-        
     #     # file { "${apache::params::generate_ssl_cert}":
     #     #     source  => "puppet:///modules/apache/generate-ssl-cert.sh",
     #     #     mode    => '0755',
@@ -125,17 +123,27 @@ class apache::common {
         refreshonly => true,
     }
 
+    # Specific SSL part
     apache::module {'ssl':
         ensure => $sslensure,
         notify => Exec["${apache::params::gracefulrestart}"],
     }
+    if ($apache::use_ssl) {
+        include 'openssl'
+    }
 
+    # Activate the rewrite module for automatic SSL redirection
+    apache::module { 'rewrite':
+        ensure => $sslensure,
+        notify => Exec["${apache::params::gracefulrestart}"],
+    }
+
+    # Specific PHP part
     apache::module {'php5':
         ensure => $phpensure,
         notify => Exec["${apache::params::gracefulrestart}"],
     }
 
-    
 
     if $apache::ensure == 'present' {
 

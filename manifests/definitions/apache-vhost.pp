@@ -77,7 +77,14 @@ define apache::vhost(
     $vhost_name     = '*',
     $aliases        = [],
     $enable_default = true,
-    $testing_mode   = false
+    $testing_mode   = false,
+    $ssl_certfile   = '',
+    $ssl_keyfile    = '',
+    $ssl_certchainfile = '',
+    $ssl_cacertdir  = '',
+    $ssl_cacertfile = '',
+    $ssl_crldir     = '',
+    $ssl_crlfile    = '',    
 )
 {
 
