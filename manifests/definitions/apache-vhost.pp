@@ -22,6 +22,11 @@
 #  The port to configure the host on (for regular http access).
 #  Default: 80
 #
+# [*htdocs_target*]
+#  You may specialize a link as htdocs (to /var/share/mediawiki for instance).
+#  Then /var/www/<vhostname>/htdocs will be a symlink to <htdocs_target> (by
+#  default, it is a regular directory). 
+#
 # [*documentroot*]
 #  Specifies the value of the 'DocumentRoot' directive.
 #  Default: /var/www/<vhostname>/htdocs
@@ -46,6 +51,10 @@
 # [*options*]
 #  the option for the Directory directive.
 #
+# [*allow_from*]
+# List of IPs to authorize the access to the Vhosts
+# Default: [] (empty list) i.e. full access
+#
 # [*aliases*]
 #  List of ServerAliases
 #
@@ -56,7 +65,8 @@
 #
 # [*testing_mode]
 #  This puts a sample 'index.html' in the documentroot to check that the virtual
-#  is indeed activated.
+#  is indeed activated. This mode is NOT COMPATIBLE with the htdocs_target
+#  directive. 
 #  Default: false
 #
 # [*sslport*]
@@ -118,7 +128,7 @@
 #        ensure       => 'present',
 #        testing_mode => true,
 #   }
-# 
+#
 #   To activate an SSL vhost:
 #
 #    apache::vhost { 'puppet-test':
@@ -143,6 +153,8 @@ define apache::vhost(
     $use_ssl        = $apache::use_ssl,
     $priority       = '010',
     $options        = 'Indexes FollowSymLinks MultiViews',
+    $allow_from     = [],
+    $htdocs_target  = '',
     $vhost_name     = '*',
     $aliases        = [],
     $enable_default = true,
@@ -261,29 +273,48 @@ define apache::vhost(
                 require => File["${apache::params::wwwdir}"],
             }
 
+            $htdocs_type = $htdocs_target ? {
+                ''      => 'directory',
+                default => 'link',
+            }
             file { "${apache::params::wwwdir}/${servername}/htdocs" :
-                ensure  => 'directory',
+                ensure  => "${htdocs_type}",
                 owner   => "${apache::params::user}",
                 group   => "${apache::params::group}",
                 mode    => "${apache::params::wwwdir_mode}",
                 seltype => "${apache::params::configdir_seltype}",
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
+            if ($htdocs_target != '') {
+                File["${apache::params::wwwdir}/${servername}/htdocs"] {
+                    target => "${htdocs_target}"
+                }
+            }
 
-            # When in testing mode, put a 'fake' index.html in htdocs/ to be able
+            # When in testing mode, put a 'fake' index.{html|php} in htdocs/ to be able
             # to check that everything works as expected.
             if $testing_mode {
-                file { "${apache::params::wwwdir}/${servername}/htdocs/index.html":
+                if ($htdocs_target != '') {
+                    fail("Cannot be in testing mode when htdocs_target is activated")
+                }
+                $indexfile = $apache::use_php ? {
+                    true    => 'index.php',
+                    default => 'index.html'
+                }
+                $indexfile_content = $apache::use_php ? {
+                    true    => "<?php phpinfo(); ?>",
+                    default => " "
+                }
+
+                file { "${apache::params::wwwdir}/${servername}/htdocs/${indexfile}":
                     ensure  => "${apache::ensure}",
                     owner   => "${apache::params::user}",
                     group   => "${apache::params::group}",
                     mode    => "${apache::params::configfile_mode}",
-                    content => inline_template("<html><body><h1><%= servername %> works!</h1></body></html>\n"),
+                    content => inline_template("<html><body><h1><%= servername %> works!</h1>${indexfile_content}</body></html>\n"),
                     require => File["${apache::params::wwwdir}/default-html"],
                     notify  => Exec["${apache::params::gracefulrestart}"],
-
                 }
-
             }
 
             # place holder for CGI scripts
@@ -524,7 +555,7 @@ define apache::vhost(
                 ensure  => absent,
                 require => Exec["disable vhost ${servername}"]
             }
-            
+
             if ($use_ssl) {
                 exec { "disable SSL vhost ${servername}":
                     command => "${apache::params::a2dissite} ${priority}-${servername}-ssl",

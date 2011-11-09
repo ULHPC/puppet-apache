@@ -10,9 +10,9 @@
 
 <VirtualHost <%= vhost_name %>:<%= port %>>
     ServerName      <%= servername %>
-    <% aliases.each do |serveralias| -%>
+<% aliases.each do |serveralias| -%>
     ServerAlias     <%= serveralias %>
-    <% end -%>
+<% end -%>
     ServerAdmin     <%= real_serveradmin %>
     
     # Limit available info about this server.
@@ -29,8 +29,16 @@
     <Directory <%= real_documentroot %>>
         Options       <%= options %>
         AllowOverride None
+<% if allow_from == [] -%>
         Order         allow,deny
         Allow from    all
+<% else -%>
+        Order Deny,Allow
+        Deny from all
+<% allow_from.each do |ipaddr| -%>
+        Allow from <%= ipaddr %>
+<% end -%>
+<% end -%>
     </Directory>
 
     # CGI scripts
