@@ -1,0 +1,21 @@
+<% if comment != "" -%>
+    ##### <%= comment %>
+<% end -%>
+<% if diralias != "" -%>
+    Alias <%= diralias %> <%= dirname %> 
+<% end -%>
+    <Directory <%= dirname %>>
+        Options       <%= options %>
+<% if allow_from == [] -%>
+        Order         allow,deny
+        Allow from    all
+<% else -%>
+        Order Deny,Allow
+        Deny from all
+        # /!\ List here the authorized IP for accessing <%= dirname %>
+<% allow_from.each do |ipaddr| -%>
+        Allow from <%= ipaddr %>
+<% end -%>
+<% end -%>
+    </Directory>
+    # End of configuration of <%= dirname %>

@@ -25,7 +25,7 @@
 # [*htdocs_target*]
 #  You may specialize a link as htdocs (to /var/share/mediawiki for instance).
 #  Then /var/www/<vhostname>/htdocs will be a symlink to <htdocs_target> (by
-#  default, it is a regular directory). 
+#  default, it is a regular directory).
 #
 # [*documentroot*]
 #  Specifies the value of the 'DocumentRoot' directive.
@@ -66,7 +66,7 @@
 # [*testing_mode]
 #  This puts a sample 'index.html' in the documentroot to check that the virtual
 #  is indeed activated. This mode is NOT COMPATIBLE with the htdocs_target
-#  directive. 
+#  directive.
 #  Default: false
 #
 # [*sslport*]
@@ -239,27 +239,80 @@ define apache::vhost(
         present: {
 
             # create the config file for the vhost
-            file { "${apache::params::vhost_availabledir}/${priority}-${servername}":
-                content => template('apache/vhost.erb'),
-                ensure  => 'present',
+            # file { "${apache::params::vhost_availabledir}/${priority}-${servername}":
+            #     content => template('apache/vhost.erb'),
+            #     ensure  => 'present',
+            #     owner   => 'root',
+            #     group   => 'root',
+            #     mode    => '0644',
+            #     seltype => "${apache::params::configdir_seltype}",
+            #     require => Package['apache2'],
+            #     notify  => Exec["${apache::params::gracefulrestart}"],
+            # }
+
+            include concat::setup
+
+            concat { "${apache::params::vhost_availabledir}/${priority}-${servername}":
+                warn    => false,
                 owner   => 'root',
                 group   => 'root',
                 mode    => '0644',
-                seltype => "${apache::params::configdir_seltype}",
+                #seltype => "${apache::params::configdir_seltype}",
                 require => Package['apache2'],
                 notify  => Exec["${apache::params::gracefulrestart}"],
             }
 
+            # Header of the file
+            concat::fragment { "${priority}-${servername}_header":
+                target  => "${apache::params::vhost_availabledir}/${priority}-${servername}",
+                content => template('apache/vhost_header.erb'),
+                ensure  => "${ensure}",
+                order   => 01,
+            }
+
+            # Footer of the file
+            concat::fragment { "${priority}-${servername}_footer":
+                target  => "${apache::params::vhost_availabledir}/${priority}-${servername}",
+                content => template('apache/vhost_footer.erb'),
+                ensure  => "${ensure}",
+                order   => 99,
+            }
+
             if ($use_ssl) {
-                file { "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl":
-                    content => template('apache/vhost-ssl.erb'),
-                    ensure  => 'present',
+                # file { "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl":
+                #     content => template('apache/vhost-ssl.erb'),
+                #     ensure  => 'present',
+                #     owner   => 'root',
+                #     group   => 'root',
+                #     mode    => '0644',
+                #     seltype => "${apache::params::configdir_seltype}",
+                #     require => Package['apache2'],
+                #     notify  => Exec["${apache::params::gracefulrestart}"],
+                # }
+                concat { "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl":
+                    warn    => false,
                     owner   => 'root',
                     group   => 'root',
                     mode    => '0644',
-                    seltype => "${apache::params::configdir_seltype}",
+                    #seltype => "${apache::params::configdir_seltype}",
                     require => Package['apache2'],
                     notify  => Exec["${apache::params::gracefulrestart}"],
+                }
+
+                # Header of the file
+                concat::fragment { "${priority}-${servername}-ssl_header":
+                    target  => "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl",
+                    content => template('apache/vhost-ssl_header.erb'),
+                    ensure  => "${ensure}",
+                    order   => 01,
+                }
+
+                # Footer of the file
+                concat::fragment { "${priority}-${servername}-ssl_footer":
+                    target  => "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl",
+                    content => template('apache/vhost-ssl_footer.erb'),
+                    ensure  => "${ensure}",
+                    order   => 99,
                 }
             }
 
