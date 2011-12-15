@@ -120,7 +120,7 @@ define apache::vhost::directory(
     }
     if ($apache::ensure != $ensure) {
         if ($apache::ensure != 'present') {
-            fail("Cannot configure the directory '${dname}' as sudo::ensure is NOT set to present (but ${sudo::ensure})")
+            fail("Cannot configure the directory '${dname}' as apache::ensure is NOT set to present (but ${apache::ensure})")
         }
     }
 
