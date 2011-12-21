@@ -92,6 +92,10 @@ class apache::common {
         ensure => "${phpensure}"
     }
 
+    package { $apache::params::php_extensions:
+        ensure => "${phpensure}"
+    }
+
     #     # file { "${apache::params::generate_ssl_cert}":
     #     #     source  => "puppet:///modules/apache/generate-ssl-cert.sh",
     #     #     mode    => '0755',

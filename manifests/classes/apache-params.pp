@@ -100,6 +100,12 @@ class apache::params {
         default => [ 'php' ]
     }
 
+    $php_extensions = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => [ 'php5-ldap', 'php5-gd' ],
+        /(?i-mx:centos|fedora|redhat)/ => [ 'php-ldap', 'php-gd' ],
+        default => [ 'php5-ldap' ]
+    }
+
     # to activate the security module
     $mod_security_packagename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => 'libapache-mod-security',
