@@ -17,7 +17,9 @@
     
     # Limit available info about this server.
     ServerSignature Off
+    <IfModule mod_ssl.c>
     SSLEngine       Off
+    </IfModule>
 
 <% if use_ssl -%>
     # Automatic HTTP to HTTPS redirection
