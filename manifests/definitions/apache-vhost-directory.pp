@@ -1,4 +1,4 @@
-# File::      <tt>apache-vhost.pp</tt>
+# File::      <tt>apache-vhost-directory.pp</tt>
 # Author::    Sebastien Varrette (<Sebastien.Varrette@uni.lu>)
 # Copyright:: Copyright (c) 2011 Sebastien Varrette (www[http://varrette.gforge.uni.lu])
 # License::   GPLv3
@@ -20,7 +20,7 @@
 #   Default: 'present'
 #
 # [*vhost*]
-#   the name of teh vhost on which this directory applies.
+#   the name of the vhost on which this directory applies.
 #
 #
 # [*content*]
@@ -150,7 +150,7 @@ define apache::vhost::directory(
     # Problem: I don't know how to deal with it.
     $priority = '010'
     $vhost_file = $apache::use_ssl ? {
-        'true'  => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl",
+        true    => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl",
         default => "${apache::params::vhost_availabledir}/${priority}-${vhost}"
     }
 
