@@ -254,6 +254,11 @@ class apache::params {
         default => undef,
     }
 
+    # Whether or not to authorize htaccess configuration
+    $allow_override = $::operatingsystem ? {
+        default => "None",
+    }
+
     # Certificates
     $certificates_seltype = $::operatingsystem ? {
         /(?i-mx:centos|fedora|redhat)/ => 'cert_t',

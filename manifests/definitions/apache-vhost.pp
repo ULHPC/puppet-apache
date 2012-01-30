@@ -49,11 +49,15 @@
 #  Default: 010
 #
 # [*options*]
-#  the option for the Directory directive.
+#  The option for the Directory directive.
+#
+# [*allow_override*]
+#  Value of the AllowOverride directive, to authorize redefinition of specific 
+#  groups of directives in htaccess.
 #
 # [*allow_from*]
-# List of IPs to authorize the access to the Vhosts
-# Default: [] (empty list) i.e. full access
+#  List of IPs to authorize the access to the Vhosts
+#  Default: [] (empty list) i.e. full access
 #
 # [*aliases*]
 #  List of ServerAliases
@@ -153,6 +157,7 @@ define apache::vhost(
     $use_ssl        = $apache::use_ssl,
     $priority       = '010',
     $options        = 'Indexes FollowSymLinks MultiViews',
+    $allow_override = $apache::params::allow_override,
     $allow_from     = [],
     $htdocs_target  = '',
     $vhost_name     = '*',

@@ -30,7 +30,7 @@
     DocumentRoot <%= real_documentroot %> 
     <Directory <%= real_documentroot %>>
         Options       <%= options %>
-        AllowOverride None
+        AllowOverride <%= allow_override %>
 <% if allow_from == [] -%>
         Order         allow,deny
         Allow from    all
