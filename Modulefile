@@ -1,5 +1,5 @@
 name       'apache'
-version    '0.1.3'
+version    '0.1.4'
 source     'git-admin.uni.lu:puppet-repo.git'
 author     'Sebastien Varrette (Sebastien.Varrette@uni.lu)'
 license    'GPL v3'
@@ -15,4 +15,4 @@ classes    'apache::params, apache, apache::common, apache::debian, apache::redh
 dependency 'openssl'
 dependency 'sudo'
 dependency 'concat'
-defines    '["apache::module", "apache::vhost", "apache::vhost::directory"]'
+defines    '["apache::module", "apache::vhost", "apache::vhost::reverse", "apache::vhost::directory"]'
