@@ -19,6 +19,9 @@
     # Limit available info about this server.
     ServerSignature Off
 
+<% if passenger_app_root != '' -%>
+    PassengerAppRoot <%= passenger_app_root %>
+<% end -%>
     DocumentRoot <%= real_documentroot %> 
     <Directory <%= real_documentroot %>>
         Options       <%= options %>

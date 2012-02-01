@@ -55,6 +55,11 @@
 #  Value of the AllowOverride directive, to authorize redefinition of specific 
 #  groups of directives in htaccess.
 #
+# [*passenger_app_root*]
+#  Indicate the root of your Ruby On Rails application. You MUST include 
+#  passenger module, and htdocs_target must point to the public directory of
+#  the application.
+#
 # [*allow_from*]
 #  List of IPs to authorize the access to the Vhosts
 #  Default: [] (empty list) i.e. full access
@@ -150,20 +155,21 @@
 # [Remember: No empty lines between comments and class definition]
 #
 define apache::vhost(
-    $serveradmin    = 'webmaster@localhost',
-    $port           = '80',
-    $documentroot   = '',
-    $ensure         = 'present',
-    $use_ssl        = $apache::use_ssl,
-    $priority       = '010',
-    $options        = 'Indexes FollowSymLinks MultiViews',
-    $allow_override = $apache::params::allow_override,
-    $allow_from     = [],
-    $htdocs_target  = '',
-    $vhost_name     = '*',
-    $aliases        = [],
-    $enable_default = true,
-    $testing_mode   = false,
+    $serveradmin        = 'webmaster@localhost',
+    $port               = '80',
+    $documentroot       = '',
+    $ensure             = 'present',
+    $use_ssl            = $apache::use_ssl,
+    $priority           = '010',
+    $options            = 'Indexes FollowSymLinks MultiViews',
+    $allow_override     = $apache::params::allow_override,
+    $allow_from         = [],
+    $passenger_app_root = '',
+    $htdocs_target      = '',
+    $vhost_name         = '*',
+    $aliases            = [],
+    $enable_default     = true,
+    $testing_mode       = false,
     # Below are SSL-only parameters, only relevant if $use_ssl = true
     $sslport                  = '443',
     $ssl_certfile_source      = '',
@@ -196,6 +202,10 @@ define apache::vhost(
     $real_documentroot = $documentroot ? {
         ''      => "${apache::params::wwwdir}/${servername}/htdocs",
         default => "${documentroot}"
+    }
+
+    if ($passenger_app_root != '' and ! defined(Class['passenger'])) {
+        fail("Class passenger is not instencied")
     }
 
     # Specific SSL variables
