@@ -243,18 +243,6 @@ define apache::vhost(
     case $ensure {
         present: {
 
-            # create the config file for the vhost
-            # file { "${apache::params::vhost_availabledir}/${priority}-${servername}":
-            #     content => template('apache/vhost.erb'),
-            #     ensure  => 'present',
-            #     owner   => 'root',
-            #     group   => 'root',
-            #     mode    => '0644',
-            #     seltype => "${apache::params::configdir_seltype}",
-            #     require => Package['apache2'],
-            #     notify  => Exec["${apache::params::gracefulrestart}"],
-            # }
-
             include concat::setup
 
             concat { "${apache::params::vhost_availabledir}/${priority}-${servername}":
@@ -284,16 +272,6 @@ define apache::vhost(
             }
 
             if ($use_ssl) {
-                # file { "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl":
-                #     content => template('apache/vhost-ssl.erb'),
-                #     ensure  => 'present',
-                #     owner   => 'root',
-                #     group   => 'root',
-                #     mode    => '0644',
-                #     seltype => "${apache::params::configdir_seltype}",
-                #     require => Package['apache2'],
-                #     notify  => Exec["${apache::params::gracefulrestart}"],
-                # }
                 concat { "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl":
                     warn    => false,
                     owner   => 'root',
