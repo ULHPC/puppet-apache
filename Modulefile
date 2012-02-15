@@ -1,5 +1,5 @@
 name       'apache'
-version    '0.1.6'
+version    '0.1.7'
 source     'git-admin.uni.lu:puppet-repo.git'
 author     'Sebastien Varrette (Sebastien.Varrette@uni.lu)'
 license    'GPL v3'
