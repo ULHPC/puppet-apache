@@ -160,6 +160,30 @@ class apache::common {
             require => Package['apache2'],
         }
 
+        # Other configuration files directory (conf.d) 
+        file { "${apache::params::otherconfigdir}":
+            owner   => "${apache::params::configdir_owner}",
+            group   => "${apache::params::configdir_group}",
+            mode    => "${apache::params::configdir_mode}",
+            ensure  => 'directory',
+            require => [
+                          File["${apache::params::configdir}"],
+                          Package['apache2']
+                       ],
+        }
+
+
+        # ports.conf, containing Listen and NameVirtualHost directives
+        file {"${apache::params::ports_file}":
+            ensure  => "${apache::ensure}",
+            owner   => "${apache::params::configdir_owner}",
+            group   => "${apache::params::configdir_group}",
+            mode    => "${apache::params::configfile_mode}",
+            content => template("apache/${apache::params::ports_template}"),
+            require => Package['apache2'],
+            notify  => Exec["${apache::params::gracefulrestart}"],
+        }
+
         # Where to put www data
         file { "${apache::params::wwwdir}":
             ensure  => 'directory',
@@ -333,7 +357,6 @@ class apache::redhat inherits apache::common {
         ensure => "${apache::ensure}",
         notify => Exec["${apache::params::gracefulrestart}"],
     }
-
 
 
 }

@@ -1,0 +1,17 @@
+## DO NOT EDIT!
+## This part is managed by Puppet (via the puppet class apache)
+
+NameVirtualHost *:80
+Listen 80
+
+<% if use_ssl -%>
+<IfModule mod_ssl.c>
+    NameVirtualHost *:443
+    Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+    NameVirtualHost *:443
+    Listen 443
+</IfModule>
+<% end -%>

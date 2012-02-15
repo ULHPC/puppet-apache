@@ -173,6 +173,22 @@ class apache::params {
         default => undef,
     }
 
+    $otherconfigdir = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => '/etc/apache2/conf.d',
+        /(?i-mx:centos|fedora|redhat)/ => '/etc/httpd/conf.d',
+        default => '/etc/apache2/conf.d',
+    }
+    
+    # Ports.conf template file (NameVirtualHost + Listen directives)
+    $ports_file = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/        => "${configdir}/ports.conf",
+        /(?i-mx:centos|fedora|redhat)/ => "${otherconfigdir}/ports.conf",
+        default => "${configdir}/ports.conf"
+    }
+    $ports_template = $::operatingsystem ? {
+        default => 'ports.conf.erb',
+    }
+
     # Virtual host dir
     $vhost_availabledir = $::operatingsystem ? {
         default => "$configdir/sites-available",
