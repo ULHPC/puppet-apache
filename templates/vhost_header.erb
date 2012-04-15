@@ -21,7 +21,7 @@
     SSLEngine       Off
     </IfModule>
 
-<% if use_ssl -%>
+<% if use_ssl and redirect_ssl -%>
     # Automatic HTTP to HTTPS redirection
     RewriteEngine   on
     RewriteCond     %{SERVER_PORT} ^80$

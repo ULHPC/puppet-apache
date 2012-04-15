@@ -44,6 +44,10 @@
 #  In all cases, see all the $ssl* parameters
 #  Default: ${apache::use_ssl}
 #
+# [*redirect_ssl*]
+#  Redirect automatically to https.
+#  Default: false
+#
 # [*priority*]
 #  Set the priority of the site (typically between 000 and 990).
 #  Default: 010
@@ -160,6 +164,7 @@ define apache::vhost(
     $documentroot       = '',
     $ensure             = 'present',
     $use_ssl            = $apache::use_ssl,
+    $redirect_ssl       = $apache::redirect_ssl,
     $priority           = '010',
     $options            = 'Indexes FollowSymLinks MultiViews',
     $allow_override     = $apache::params::allow_override,
