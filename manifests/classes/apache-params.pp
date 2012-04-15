@@ -101,8 +101,8 @@ class apache::params {
     }
 
     $php_extensions = $::operatingsystem ? {
-        /(?i-mx:ubuntu|debian)/        => [ 'php5-ldap', 'php5-gd' ],
-        /(?i-mx:centos|fedora|redhat)/ => [ 'php-ldap', 'php-gd' ],
+        /(?i-mx:ubuntu|debian)/        => [ 'php5-ldap', 'php5-gd', 'php5-mcrypt', 'php5-curl' ],
+        /(?i-mx:centos|fedora|redhat)/ => [ 'php-ldap', 'php-gd', 'php-mcrypt' ],
         default => [ 'php5-ldap' ]
     }
 
