@@ -136,7 +136,7 @@ define apache::vhost::directory(
             ''      => template('apache/vhost-directory.erb'),
             default => ''
         },
-        default => ''
+        default => $content
     }
     $real_source = $source ? {
         '' => '',
