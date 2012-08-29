@@ -54,7 +54,7 @@ class apache::params {
 
     # Whether or not to activate SSL for virtual hosts
     $use_ssl = $apache_use_ssl ? {
-        ''      => true,
+        ''      => false,
         default => "${apache_use_ssl}",
     }
 
