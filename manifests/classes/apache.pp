@@ -172,7 +172,6 @@ class apache::common {
                        ],
         }
 
-
         # ports.conf, containing Listen and NameVirtualHost directives
         file {"${apache::params::ports_file}":
             ensure  => "${apache::ensure}",

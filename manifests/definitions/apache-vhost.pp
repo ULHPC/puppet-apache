@@ -31,6 +31,15 @@
 #  Specifies the value of the 'DocumentRoot' directive.
 #  Default: /var/www/<vhostname>/htdocs
 #
+# [*content*]
+#  Specify the contents of the  vhost config as a string. Newlines, tabs,
+#  and spaces can be specified using the escaped syntax (e.g., \n for a newline)
+#
+# [*source*]
+#  Copy a file as the content of the vhost config.  Uses checksum to determine when a file
+#  should be copied. Valid values are either fully qualified paths to files, or
+#  URIs. Currently supported URI types are puppet and file.
+#
 # [*serveradmin*]
 #  The vhost admin (i.e. its mail address).
 #  Default: 'webmaster@localhost'
@@ -56,11 +65,11 @@
 #  The option for the Directory directive.
 #
 # [*allow_override*]
-#  Value of the AllowOverride directive, to authorize redefinition of specific 
+#  Value of the AllowOverride directive, to authorize redefinition of specific
 #  groups of directives in htaccess.
 #
 # [*passenger_app_root*]
-#  Indicate the root of your Ruby On Rails application. You MUST include 
+#  Indicate the root of your Ruby On Rails application. You MUST include
 #  passenger module, and htdocs_target must point to the public directory of
 #  the application.
 #
@@ -159,6 +168,8 @@
 # [Remember: No empty lines between comments and class definition]
 #
 define apache::vhost(
+    $content            = '',
+    $source             = '',
     $serveradmin        = 'webmaster@localhost',
     $port               = '80',
     $documentroot       = '',
@@ -212,7 +223,7 @@ define apache::vhost(
     if ($passenger_app_root != '' and ! defined(Class['passenger'])) {
         fail("Class passenger is not instencied")
     }
-
+    
     # Specific SSL variables
     if ($use_ssl) {
         include openssl::params
@@ -270,6 +281,12 @@ define apache::vhost(
                 notify  => Exec["${apache::params::gracefulrestart}"],
             }
 
+            # if ("${content}" != '' or "${source}" != '') {
+
+
+            # }
+            # else
+            # {
             # Header of the file
             concat::fragment { "${priority}-${servername}_header":
                 target  => "${apache::params::vhost_availabledir}/${priority}-${servername}",
@@ -312,6 +329,7 @@ define apache::vhost(
                     ensure  => "${ensure}",
                     order   => 99,
                 }
+                #}
             }
 
             # create the directory to host the www files
