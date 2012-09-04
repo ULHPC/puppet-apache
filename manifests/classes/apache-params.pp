@@ -188,7 +188,11 @@ class apache::params {
     $ports_template = $::operatingsystem ? {
         default => 'ports.conf.erb',
     }
+    $ports_file_default_entry = $::operatingsystem ? {
+        default => "${ports_file}_default_entry"
+    }
 
+    
     # Virtual host dir
     $vhost_availabledir = $::operatingsystem ? {
         default => "$configdir/sites-available",
