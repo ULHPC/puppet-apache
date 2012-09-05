@@ -422,6 +422,21 @@ define apache::vhost(
                 require => File["${apache::params::logdir}"]
             }
 
+            # config data
+            file { "${apache::params::wwwdir}/${servername}/config":
+                ensure  => 'directory',
+                owner   => "${apache::params::user}",
+                group   => "${apache::params::group}",
+                mode    => "${apache::params::wwwdir_mode}",
+                seltype => "${apache::params::privatedir_seltype}",
+                require => File["${apache::params::wwwdir}/${servername}"],
+            }
+            file { "${apache::params::wwwdir}/${servername}/config/vhost_${servername}":
+                ensure  => 'link',
+                target  => "${apache::params::vhost_availabledir}/${priority}-${servername}",
+                require => File["${apache::params::wwwdir}/${servername}/config"]
+            }
+
             # Private data
             file { "${apache::params::wwwdir}/${servername}/private":
                 ensure  => 'directory',
@@ -434,6 +449,13 @@ define apache::vhost(
 
             # place holder for SSL certificates
             if ($use_ssl) {
+                file { "${apache::params::wwwdir}/${servername}/config/vhost_${servername}-ssl":
+                    ensure  => 'link',
+                    target  => "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl",
+                    require => File["${apache::params::wwwdir}/${servername}/config"]
+                }
+
+
                 file { "${apache::params::wwwdir}/${servername}/certificates":
                     ensure  => 'directory',
                     owner   => "${apache::params::user}",

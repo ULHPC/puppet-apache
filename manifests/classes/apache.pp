@@ -203,11 +203,19 @@ class apache::common {
                 default => 'present'
             } 
         }
-        
+
+        concat::fragment { "${apache::params::ports_file}_header":
+            target  => "${apache::params::ports_file}",
+            ensure  => "${apache::ensure}",
+            order   => '01',
+            content => template("apache/ports.conf_header.erb"),
+            notify  => Exec["${apache::params::gracefulrestart}"],
+        }
+
         concat::fragment { "${apache::params::ports_file_default_entry}":
             target  => "${apache::params::ports_file}",
             ensure  => "${ports_file_ensure_default_entry}",
-            order   => '01',
+            order   => '10',
             content => template("apache/${apache::params::ports_template}"),
             notify  => Exec["${apache::params::gracefulrestart}"],
         }
