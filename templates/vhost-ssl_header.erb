@@ -1,5 +1,5 @@
 ################################################################################
-# <%= real_documentroot %> 
+# <%= real_documentroot %>
 # Apache configuration for https://<%= scope.lookupvar('servername') %>
 #
 ################################################################################
@@ -22,7 +22,7 @@
 <% if passenger_app_root != '' -%>
     PassengerAppRoot <%= passenger_app_root %>
 <% end -%>
-    DocumentRoot <%= real_documentroot %> 
+    DocumentRoot <%= real_documentroot %>
     <Directory <%= real_documentroot %>>
         Options       <%= options %>
         AllowOverride <%= allow_override %>
@@ -31,10 +31,10 @@
         Allow from    all
 <% else -%>
         Order Deny,Allow
-        Deny from all
 <% allow_from.each do |ipaddr| -%>
         Allow from <%= ipaddr %>
 <% end -%>
+        Deny from all
 <% end -%>
     </Directory>
 
