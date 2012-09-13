@@ -7,11 +7,14 @@
 #
 # This definition map a remote server in the local url space for an apache vhost
 #
-#  Note that the name of the definition will be the source source path. HTTP 
+#  Note that the name of the definition will be the source source path. HTTP
 #  requests on this path will be proxied to the target_url.
 #  Example: "/ganglia/" will result in the configuration
 #          ProxyPass        /ganglia/ <target_url>
 #          ProxyPassReverse /ganglia/ <target_url>
+#
+# TODO: Implement Module mod_proxy_html
+# https://httpd.apache.org/docs/2.4/mod/mod_proxy_html.html
 #
 # == Pre-requisites
 #
