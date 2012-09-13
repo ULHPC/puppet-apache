@@ -224,6 +224,11 @@ define apache::vhost(
         fail("Class passenger is not instencied")
     }
 
+    if ($use_ssl == true and $apache::use_ssl == false)
+    {
+        fail("apache::vhost::use_ssl == true requires apache::use_ssl == true")
+    }
+
     # Specific SSL variables
     if ($use_ssl) {
         include openssl::params
