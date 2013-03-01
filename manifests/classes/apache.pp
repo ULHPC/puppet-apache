@@ -97,17 +97,6 @@ class apache::common {
         ensure => "${phpensure}"
     }
 
-    #     # file { "${apache::params::generate_ssl_cert}":
-    #     #     source  => "puppet:///modules/apache/generate-ssl-cert.sh",
-    #     #     mode    => '0755',
-    #     #     owner   => 'root',
-    #     #     group   => 'root',
-    #     #     ensure  => "${apache::ensure}",
-    #     #     #require => Package['openssl']
-    #     # }
-
-    # }
-
     # Apache user
     user { "${apache::params::user}":
         ensure  => "${apache::ensure}",
@@ -143,13 +132,6 @@ class apache::common {
         notify => Exec["${apache::params::gracefulrestart}"],
     }
 
-    # Specific PHP part
-    apache::module {'php5':
-        ensure => $phpensure,
-        notify => Exec["${apache::params::gracefulrestart}"],
-    }
-
-
     if $apache::ensure == 'present' {
 
         # main root configuration dir (/etc/apache2 on Debian systems)
@@ -173,18 +155,6 @@ class apache::common {
                         ],
         }
 
-        # ports.conf, containing Listen and NameVirtualHost directives
-        # OLD version, using the file resource
-        # file {"${apache::params::ports_file}":
-        #     ensure  => "${apache::ensure}",
-        #     owner   => "${apache::params::configdir_owner}",
-        #     group   => "${apache::params::configdir_group}",
-        #     mode    => "${apache::params::configfile_mode}",
-        #     content => template("apache/${apache::params::ports_template}"),
-        #     require => Package['apache2'],
-        #     notify  => Exec["${apache::params::gracefulrestart}"],
-        # }
-
         include concat::setup
         concat { "${apache::params::ports_file}":
             warn    => false,
@@ -197,11 +167,11 @@ class apache::common {
         }
 
         $ports_file_ensure_default_entry = $apache::enable_default_listen ? {
-            true    => "${apache::ensure}", 
+            true    => "${apache::ensure}",
             default => $apache::enable_default_listen ? {
                 false   => 'absent',
                 default => 'present'
-            } 
+            }
         }
 
         concat::fragment { "${apache::params::ports_file}_header":
@@ -219,9 +189,6 @@ class apache::common {
             content => template("apache/${apache::params::ports_template}"),
             notify  => Exec["${apache::params::gracefulrestart}"],
         }
-
-
-
 
 
 
@@ -327,80 +294,83 @@ class apache::common {
             require    => Package['apache2'],
         }
 
-
-
     }
     else
     {
         # Here $apache::ensure is 'absent'
 
     }
+}
+
+
+# ------------------------------------------------------------------------------
+# = Class: apache::debian
+#
+# Specialization class for Debian systems
+class apache::debian inherits apache::common {
+    package { 'apache2-mpm-prefork':
+        ensure  => "${apache::ensure}",
+        require => Package['apache2'],
     }
 
+    if $apache::use_ssl {
+        if !defined(Package['ca-certificates']) {
+            package { 'ca-certificates':
+                ensure => "${apache::ensure}",
+            }
+        }
+    }
 
-    # ------------------------------------------------------------------------------
-    # = Class: apache::debian
-    #
-    # Specialization class for Debian systems
-    class apache::debian inherits apache::common {
-        package { 'apache2-mpm-prefork':
+}
+
+# ------------------------------------------------------------------------------
+# = Class: apache::redhat
+#
+# Specialization class for Redhat systems
+class apache::redhat inherits apache::common {
+
+    file { [
+            '/usr/local/sbin/a2ensite',
+            '/usr/local/sbin/a2dissite',
+            '/usr/local/sbin/a2enmod',
+            '/usr/local/sbin/a2dismod'
+            ] :
+                ensure => "${apache::ensure}",
+                mode   => '0755',
+                owner  => 'root',
+                group  => 'root',
+                source => "puppet:///modules/apache/usr/local/sbin/a2X.redhat",
+    }
+
+    # Add dependency for the apache::module definition
+    Apache::Module {
+        require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ]
+    }
+
+    if ($apache::use_ssl) {
+        package { 'mod_ssl' :
             ensure  => "${apache::ensure}",
-            require => Package['apache2'],
+            require => Package['apache2']
         }
-
-        if $apache::use_ssl {
-            if !defined(Package['ca-certificates']) {
-                package { 'ca-certificates':
-                    ensure => "${apache::ensure}",
-                }
-            }
-        }
-
-
     }
 
-    # ------------------------------------------------------------------------------
-    # = Class: apache::redhat
-    #
-    # Specialization class for Redhat systems
-    class apache::redhat inherits apache::common {
-
-        file { [
-                '/usr/local/sbin/a2ensite',
-                '/usr/local/sbin/a2dissite',
-                '/usr/local/sbin/a2enmod',
-                '/usr/local/sbin/a2dismod'
-                ] :
-                    ensure => "${apache::ensure}",
-                    mode   => '0755',
-                    owner  => 'root',
-                    group  => 'root',
-                    source => "puppet:///modules/apache/usr/local/sbin/a2X.redhat",
-        }
-
-        # Add dependency for the apache::module definition
-        Apache::Module {
-            require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ]
-        }
-
-        if ($apache::use_ssl) {
-            package { 'mod_ssl' :
-                ensure  => "${apache::ensure}",
-                require => Package['apache2']
-            }
-        }
-
-        # Add seltype 'httpd_config_t' for /etc/httpd and {mods,sites}-{enabled,available} files
-        # TODO
-
-        # this module is statically compiled on debian and must be enabled here
-        apache::module { 'log_config':
-            ensure => "${apache::ensure}",
-            notify => Exec["${apache::params::gracefulrestart}"],
-        }
-
-
+    # Enable php module
+    apache::module {'php5':
+        ensure => "${apache::common::phpensure}",
+        notify => Exec["${apache::params::gracefulrestart}"],
     }
+
+    # Add seltype 'httpd_config_t' for /etc/httpd and {mods,sites}-{enabled,available} files
+    # TODO
+
+    # this module is statically compiled on debian and must be enabled here
+    apache::module { 'log_config':
+        ensure => "${apache::ensure}",
+        notify => Exec["${apache::params::gracefulrestart}"],
+    }
+
+
+}
 
 
 
