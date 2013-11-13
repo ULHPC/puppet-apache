@@ -76,6 +76,56 @@ class apache::params {
         default => "${apache_admin_group}",
     }
 
+
+    # https://httpd.apache.org/docs/2.2/mod/mod_disk_cache.html
+    $cache_root = $apache_cache_root ?
+    {
+      ''      => '/var/cache/apache2/mod_disk_cache',
+      default => "${apache_cache_root}",
+    }
+
+    $cache_path = $apache_cache_path ?
+    {
+      ''      => ['/'],
+      default => "${apache_cache_path}",
+    }
+
+    $cachedirlevels = $apache_cachedirlevels ?
+    {
+      ''      => 2,
+      default => "${apache_cachedirlevels}",
+    }
+
+    $cachedirlength = $apache_cachedirlength ?
+    {
+      ''      => 1,
+      default => "${apache_cachedirlength}",
+    }
+
+    $cachemaxfilesize = $apache_cachemaxfilesize ?
+    {
+      ''      => 100000000,
+      default => "${apache_cachemaxfilesize}",
+    }
+
+    $cacheignorenolastmod = $apache_cacheignorenolastmod ?
+    {
+      ''      => 'On',
+      default => "${apache_cacheignorenolastmod}",
+    }
+
+    $cachemaxexpire = $apache_cachemaxexpire ?
+    {
+      ''      => '300',
+      default => "${apache_cachemaxexpire}",
+    }
+
+    $cacheignorequerystring = $apache_cacheignorequerystring ?
+    {
+      ''      => 'Off',
+      default => "${apache_cacheignorequerystring}",
+    }
+
     #### MODULE INTERNAL VARIABLES  #########
     # (Modify to adapt to unsupported OSes)
     #######################################
@@ -178,7 +228,7 @@ class apache::params {
         /(?i-mx:centos|fedora|redhat)/ => '/etc/httpd/conf.d',
         default => '/etc/apache2/conf.d',
     }
-    
+
     # Ports.conf template file (NameVirtualHost + Listen directives)
     $ports_file = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/        => "${configdir}/ports.conf",
@@ -192,7 +242,7 @@ class apache::params {
         default => "${ports_file}_default_entry"
     }
 
-    
+
     # Virtual host dir
     $vhost_availabledir = $::operatingsystem ? {
         default => "$configdir/sites-available",
@@ -203,6 +253,11 @@ class apache::params {
     # Default virtual host template file
     $vhost_default = $::operatingsystem ? {
         default => 'default-vhost.erb',
+    }
+
+    # Default disk cache config file
+    $disk_cache_template = $::operatingsystem ? {
+        default => 'disk_cache.erb',
     }
 
     # Apache modules dir
