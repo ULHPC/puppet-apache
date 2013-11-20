@@ -358,9 +358,9 @@ define apache::vhost(
             }
             file { "${apache::params::wwwdir}/${servername}/htdocs" :
                 ensure  => "${htdocs_type}",
-                owner   => "${apache::params::user}",
+            #   owner   => "${apache::params::user}",
                 group   => "${apache::params::group}",
-                mode    => "${apache::params::wwwdir_mode}",
+                mode    => "${apache::params::htdocs_mode}",
                 seltype => "${apache::params::configdir_seltype}",
                 require => File["${apache::params::wwwdir}/${servername}"],
             }

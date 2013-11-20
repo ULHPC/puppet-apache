@@ -282,6 +282,9 @@ class apache::params {
     $wwwdir_group = $::operatingsystem ? {
         default => 'root',
     }
+    $htdocs_mode = $::operatingsystem ? {
+        default => '0775',
+    }
 
     # cgi-bin dir
     $cgidir = $::operatingsystem ? {
