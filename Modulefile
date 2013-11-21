@@ -1,5 +1,5 @@
 name    'apache'
-version '0.3.0'
+version '0.3.1'
 source  'git-admin.uni.lu:puppet-repo.git'
 author  'Hyacinthe Cartiaux (hyacinthe.cartiaux@uni.lu)'
 license 'GPL v3'
