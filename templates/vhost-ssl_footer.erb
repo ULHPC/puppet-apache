@@ -119,9 +119,11 @@
     <FilesMatch "\.(cgi|shtml|phtml|php)$">
         SSLOptions +StdEnvVars
     </FilesMatch>
+<% if enable_cgi -%>
     <Directory /usr/lib/cgi-bin>
         SSLOptions +StdEnvVars
     </Directory>
+<% end -%>
 
     #   SSL Protocol Adjustments:
     #   The safe and default but still SSL/TLS standard compliant shutdown

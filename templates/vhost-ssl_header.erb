@@ -38,10 +38,12 @@
 <% end -%>
     </Directory>
 
+<% if enable_cgi -%>
     # CGI scripts
     ScriptAlias /cgi-bin/ <%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>/cgi-bin/
     <Directory <%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>/cgi-bin>
         Options       +ExecCGI
         AddHandler    cgi-script .cgi
     </Directory>
+<% end -%>
 

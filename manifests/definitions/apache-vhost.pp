@@ -85,6 +85,10 @@
 #  /var/www/default-html).
 #  Default: true
 #
+# [*enable_cgi*]
+#  Whether or not to activate & create the cgi-bin directory
+#  Default: true
+#
 # [*testing_mode]
 #  This puts a sample 'index.html' in the documentroot to check that the virtual
 #  is indeed activated. This mode is NOT COMPATIBLE with the htdocs_target
@@ -185,6 +189,7 @@ define apache::vhost(
     $vhost_name         = '*',
     $aliases            = [],
     $enable_default     = true,
+    $enable_cgi         = true,
     $testing_mode       = false,
     # Below are SSL-only parameters, only relevant if $use_ssl = true
     $sslport                  = '443',

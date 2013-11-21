@@ -27,25 +27,26 @@
     RewriteCond     %{SERVER_PORT} ^80$
     RewriteRule     ^(.*)$ https://%{SERVER_NAME}$1 [L,R]
 <% else -%>
-<% if passenger_app_root != '' -%>
+ <% if passenger_app_root != '' -%>
     PassengerAppRoot <%= passenger_app_root %>
-<% end -%>
+ <% end -%>
     DocumentRoot <%= real_documentroot %>
     <Directory <%= real_documentroot %>>
         Options       <%= options %>
         AllowOverride <%= allow_override %>
-<% if allow_from == [] -%>
+ <% if allow_from == [] -%>
         Order         allow,deny
         Allow from    all
-<% else -%>
+ <% else -%>
         Order Deny,Allow
-<% allow_from.each do |ipaddr| -%>
+  <% allow_from.each do |ipaddr| -%>
         Allow from <%= ipaddr %>
-<% end -%>
+  <% end -%>
         Deny from all
-<% end -%>
+ <% end -%>
     </Directory>
 
+ <% if enable_cgi -%>
     # CGI scripts
     ScriptAlias /cgi-bin/ <%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>/cgi-bin/
     <Directory <%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>/cgi-bin>
@@ -53,5 +54,6 @@
         AddHandler    cgi-script .cgi
     </Directory>
  <% end -%>
+<% end -%>
 
 
