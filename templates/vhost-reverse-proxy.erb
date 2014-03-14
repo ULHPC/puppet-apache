@@ -2,8 +2,8 @@
     ##### <%= comment %>
 <% end -%>
 <% if target_url != "" -%>
-    ProxyPass <%= source_path %> <%= target_url %>/
-    ProxyPassReverse <%= source_path %> <%= target_url %>/
+    ProxyPass <%= source_path %> <%= target_url %>
+    ProxyPassReverse <%= source_path %> <%= target_url %>
 <% end -%>
     <Proxy <%= target_url%>/*>
 <% if allow_from == [] -%>
