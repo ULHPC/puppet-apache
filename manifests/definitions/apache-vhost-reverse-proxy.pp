@@ -177,6 +177,25 @@ define apache::vhost::reverse-proxy(
         default => "${apache::params::vhost_availabledir}/${priority}-${vhost}"
     }
 
+
+    if (     gsub($target_url, '^https.*', 'https') == 'https'
+        and ! defined(Concat::Fragment["apache_vhost_${vhost}_proxy_settings"])
+       ) {
+
+        concat::fragment { "apache_vhost_${vhost}_proxy_settings":
+            target  => "${vhost_file}",
+            ensure  => "${ensure}",
+            order   => '49',
+            content => '
+
+    SSLProxyEngine on
+    SSLProxyVerify none
+
+',
+            notify  => Exec["${apache::params::gracefulrestart}"],
+        }
+    }
+
     concat::fragment { "apache_vhost_${vhost}_proxy_${source_path}":
         target  => "${vhost_file}",
         ensure  => "${ensure}",
