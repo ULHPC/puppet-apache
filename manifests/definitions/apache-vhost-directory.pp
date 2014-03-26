@@ -43,7 +43,7 @@
 #
 # [*order*]
 #  Set the order of the directory definition (typically between 10 and 90).
-#  Default: 50
+#  Default: 40
 #
 # [*options*]
 #  the option for the Directory directive.
@@ -101,7 +101,7 @@ define apache::vhost::directory(
     $ensure     = 'present',
     $content    = '',
     $source     = '',
-    $order      = '50',
+    $order      = '40',
     $options    = 'Indexes FollowSymLinks MultiViews',
     $allow_from = [],
     $diralias   = '',
