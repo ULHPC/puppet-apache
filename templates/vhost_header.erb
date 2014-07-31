@@ -8,7 +8,7 @@
 #      invocation
 ################################################################################
 
-<VirtualHost <%= vhost_name %>:<%= port %>>
+<VirtualHost<% vhost_name.each do |vhost| -%> <%= vhost %>:<%= port %><% end -%>>
     ServerName      <%= servername %>
 <% aliases.each do |serveralias| -%>
     ServerAlias     <%= serveralias %>
