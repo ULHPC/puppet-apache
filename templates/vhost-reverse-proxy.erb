@@ -1,5 +1,6 @@
 <% if comment != "" -%>
-    ##### <%= comment %>
+
+   ##### <%= comment %>
 <% end -%>
 <% if target_url != "" -%>
     ProxyPass <%= source_path %> <%= target_url %>
@@ -18,4 +19,10 @@
         Deny from all
 <% end -%>
     </Proxy>
+    <Location <%= source_path %>>
+<% headers.each_pair do |key, value| -%>
+        RequestHeader set <%= key %> '<%= value %>'
+<% end -%>
+    </Location>
     # End of configuration of <%= source_path %>
+

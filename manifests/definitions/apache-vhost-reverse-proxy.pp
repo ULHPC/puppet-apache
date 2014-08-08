@@ -13,9 +13,6 @@
 #          ProxyPass        /ganglia/ <target_url>
 #          ProxyPassReverse /ganglia/ <target_url>
 #
-# TODO: Implement Module mod_proxy_html
-# https://httpd.apache.org/docs/2.4/mod/mod_proxy_html.html
-#
 # == Pre-requisites
 #
 # * The class 'apache' should have been instanciated
@@ -57,6 +54,10 @@
 # List of IPs to authorize the access to the path
 # Default: [] (empty list) i.e. full access
 #
+# [*headers*]
+# Set the headers when querying the proxied service
+# Default: {} (empty hash)
+#
 # == Requires:
 #
 # n/a
@@ -74,7 +75,8 @@
 #         ensure      => 'present',
 #         target_url  => 'http://supervision.gaia-cluster.uni.lux/ganglia',
 #         allow_from  => [ '192.168.1.1', '10.1.2.3' ],
-#         comment     => "Ganglia"
+#         comment     => "Ganglia",
+#         headers     => {'X-Test' => 'Value 1', 'X-Test2' => 'Value 2'}
 #    }
 #
 #    The above setting will result in the following configuration of the
@@ -90,6 +92,10 @@
 #             Allow from 192.168.1.1
 #             Allow from 10.1.2.3
 #     </Proxy>
+#     <Location /ganglia/>
+#             RequestHeader set X-Test 'Value 1'
+#             RequestHeader set X-Test2 'Value 2'
+#     </Location>
 #
 # == Warnings
 #
@@ -106,7 +112,8 @@ define apache::vhost::reverse-proxy(
     $target_url = '',
     $order      = '50',
     $allow_from = [],
-    $comment    = ''
+    $comment    = '',
+    $headers    = {}
 )
 {
 
@@ -148,6 +155,13 @@ define apache::vhost::reverse-proxy(
     if ( ! defined(Apache::Module[proxy_connect])) {
         # Enable apache proxy module
         apache::module {'proxy_connect':
+            ensure => $ensure,
+            notify => Exec["${apache::params::gracefulrestart}"],
+        }
+    }
+    if ( ! defined(Apache::Module[headers]) and $headers != {} ) {
+        # Enable apache proxy module
+        apache::module {'headers':
             ensure => $ensure,
             notify => Exec["${apache::params::gracefulrestart}"],
         }
