@@ -2,11 +2,11 @@
 
    ##### <%= comment %>
 <% end -%>
+    <Location <%= source_path %>>
 <% if target_url != "" -%>
-    ProxyPass <%= source_path %> <%= target_url %>
-    ProxyPassReverse <%= source_path %> <%= target_url %>
+        ProxyPass <%= target_url %>
+        ProxyPassReverse <%= target_url %>
 <% end -%>
-    <Proxy <%= target_url%>/*>
 <% if allow_from == [] -%>
         Order         allow,deny
         Allow from    all
@@ -18,8 +18,6 @@
 <% end -%>
         Deny from all
 <% end -%>
-    </Proxy>
-    <Location <%= source_path %>>
 <% headers.each_pair do |key, value| -%>
         RequestHeader set <%= key %> '<%= value %>'
 <% end -%>
