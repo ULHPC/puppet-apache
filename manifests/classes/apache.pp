@@ -319,6 +319,31 @@ class apache::debian inherits apache::common {
                 ensure => "${apache::ensure}",
             }
         }
+
+        if ($lsbdistcodename in ['squeeze', 'wheezy']) {
+            # SSL configuration
+            file { "${mods_availabledir}/ssl.conf":
+                ensure  => "$apache::ensure",
+                owner   => "${apache::params::configdir_owner}",
+                group   => "${apache::params::configdir_group}",
+                mode    => "${apache::params::configfile_mode}",
+                seltype => "${apache::params::configdir_seltype}",
+                source  => "puppet:///modules/apache/conf_${lsbdistcodename}/ssl.conf",
+                notify  => Exec["${apache::params::gracefulrestart}"],
+            }
+        }
+
+    }
+
+    # Apache security configuration
+    file { "${otherconfigdir}/security":
+        ensure  => "$apache::ensure",
+        owner   => "${apache::params::configdir_owner}",
+        group   => "${apache::params::configdir_group}",
+        mode    => "${apache::params::configfile_mode}",
+        seltype => "${apache::params::configdir_seltype}",
+        source  => "puppet:///modules/apache/security",
+        notify  => Exec["${apache::params::gracefulrestart}"],
     }
 
 }
