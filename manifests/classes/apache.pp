@@ -131,6 +131,10 @@ class apache::common {
         ensure => $sslensure,
         notify => Exec["${apache::params::gracefulrestart}"],
     }
+    apache::module { 'headers':
+        ensure => $sslensure,
+        notify => Exec["${apache::params::gracefulrestart}"],
+    }
 
     if $apache::ensure == 'present' {
 
