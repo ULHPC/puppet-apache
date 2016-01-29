@@ -186,7 +186,7 @@ define apache::vhost(
     $allow_from         = [],
     $passenger_app_root = '',
     $htdocs_target      = '',
-    $vhost_name         = '*',
+    $vhost_name         = ['*'],
     $aliases            = [],
     $enable_default     = true,
     $enable_cgi         = true,
