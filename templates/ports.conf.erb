@@ -1,7 +1,7 @@
 NameVirtualHost *:80
 Listen 80
 
-<% if use_ssl -%>
+<% if @use_ssl -%>
 <IfModule mod_ssl.c>
     NameVirtualHost *:443
     Listen 443
