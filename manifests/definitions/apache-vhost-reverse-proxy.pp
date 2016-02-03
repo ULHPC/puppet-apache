@@ -187,8 +187,8 @@ define apache::vhost::reverse-proxy(
     # Problem: I don't know how to deal with it.
     $priority = '010'
     $vhost_file = $apache::use_ssl ? {
-        true    => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl",
-        default => "${apache::params::vhost_availabledir}/${priority}-${vhost}"
+        true    => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl${vhost_extension}",
+        default => "${apache::params::vhost_availabledir}/${priority}-${vhost}${vhost_extension}"
     }
 
 

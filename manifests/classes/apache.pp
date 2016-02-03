@@ -275,8 +275,8 @@ class apache::common {
         }
 
         # The default virtual host file
-        file { "${apache::params::vhost_availabledir}/default":
-            ensure  => "$apache::ensure",
+        file { "${apache::params::vhost_availabledir}/${apache::params::default_vhost_file}${apache::params::vhost_extension}":
+            ensure  => $apache::ensure,
             owner   => "${apache::params::configdir_owner}",
             group   => "${apache::params::configdir_group}",
             mode    => "${apache::params::configfile_mode}",

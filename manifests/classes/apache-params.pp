@@ -254,6 +254,25 @@ class apache::params {
     $vhost_default = $::operatingsystem ? {
         default => 'default-vhost.erb',
     }
+    $vhost_extension = $::operatingsystem ? {
+        /(?i-mx:debian|ubuntu)/ => $::lsbmajdistrelease ? {
+            8       => '.conf',
+            default => ''
+        },
+        default => ''
+    }
+    $default_vhost_file = $::operatingsystem ? {
+        /(?i-mx:debian|ubuntu)/ => $::lsbmajdistrelease ? {
+            6       => 'default',
+            7       => 'default',
+            default => '000-default'
+        },
+        default => 'default'
+    }
+    $default_vhost_link = $::operatingsystem ? {
+        default => '000-default'
+    }
+
 
     # Default disk cache config file
     $disk_cache_template = $::operatingsystem ? {

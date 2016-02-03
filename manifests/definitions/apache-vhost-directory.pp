@@ -150,8 +150,8 @@ define apache::vhost::directory(
     # Problem: I don't know how to deal with it.
     $priority = '010'
     $vhost_file = $apache::use_ssl ? {
-        true    => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl",
-        default => "${apache::params::vhost_availabledir}/${priority}-${vhost}"
+        true    => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl${apache::params::vhost_extension}",
+        default => "${apache::params::vhost_availabledir}/${priority}-${vhost}${apache::params::vhost_extension}"
     }
 
     concat::fragment { "apache_vhost_${vhost}_directory_${dirname}":
