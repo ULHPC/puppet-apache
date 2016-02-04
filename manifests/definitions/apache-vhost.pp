@@ -218,20 +218,20 @@ define apache::vhost(
     # Variables setup
     $real_serveradmin = $serveradmin ? {
         ''      => 'webmaster@localhost',
-        default => "${serveradmin}"
+        default => $serveradmin
     }
     $real_documentroot = $documentroot ? {
         ''      => "${apache::params::wwwdir}/${servername}/htdocs",
-        default => "${documentroot}"
+        default => $documentroot
     }
 
     if ($passenger_app_root != '' and ! defined(Class['passenger'])) {
-        fail("Class passenger is not instencied")
+        fail('Class passenger is not instencied')
     }
 
     if ($use_ssl == true and $apache::use_ssl == false)
     {
-        fail("apache::vhost::use_ssl == true requires apache::use_ssl == true")
+        fail('apache::vhost::use_ssl == true requires apache::use_ssl == true')
     }
 
     # Specific SSL variables
@@ -241,7 +241,7 @@ define apache::vhost(
         $ssl_certfile = "${apache::params::wwwdir}/${servername}/certificates/${servername}${openssl::params::cert_filename_suffix}"
         $ssl_keyfile  = "${apache::params::wwwdir}/${servername}/certificates/${servername}${openssl::params::key_filename_suffix}"
         $ssl_cacertfile = $ssl_cacertfile_source ? {
-            ''      => "${openssl::params::default_ssl_cacert}",
+            ''      => $openssl::params::default_ssl_cacert,
             default => "${apache::params::wwwdir}/${servername}/certificates/cacert.pem"
         }
         # Server Certificate Chain
@@ -258,21 +258,21 @@ define apache::vhost(
 
     # check if default virtual host is enabled
     if $enable_default {
-        exec { "check if default virtual host is enabled for $servername":
+        exec { "check if default virtual host is enabled for ${servername}":
             command => "${apache::params::a2ensite} ${apache::params::default_vhost_file}",
-            path => "/usr/bin:/usr/sbin/:/bin:/sbin",
+            path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
             unless  => "test -L '${apache::params::vhost_enableddir}/${apache::params::default_vhost_link}${apache::params::vhost_extension}'",
             require => Package['apache2'],
-            notify  => Exec["${apache::params::gracefulrestart}"],
+            notify  => Exec[$apache::params::gracefulrestart],
         }
     }
     else {
-        exec { "disable default virtual host $servername":
+        exec { "disable default virtual host ${servername}":
             command => "${apache::params::a2dissite} ${apache::params::default_vhost_file}",
-            path => "/usr/bin:/usr/sbin/:/bin:/sbin",
+            path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
             onlyif  => "test -L '${apache::params::vhost_enableddir}/${apache::params::default_vhost_link}${apache::params::vhost_extension}'",
             require => Package['apache2'],
-            notify  => Exec["${apache::params::gracefulrestart}"],
+            notify  => Exec[$apache::params::gracefulrestart],
         }
     }
 
@@ -288,15 +288,15 @@ define apache::vhost(
                 mode    => '0644',
                 #seltype => "${apache::params::configdir_seltype}",
                 require => Package['apache2'],
-                notify  => Exec["${apache::params::gracefulrestart}"],
+                notify  => Exec[$apache::params::gracefulrestart],
             }
 
-            if ("${content}" != '' or "${source}" != '') {
+            if ($content != '' or $source != '') {
                 concat::fragment { "${priority}-${servername}_content":
                     target  => "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
-                    content => "${content}",
-                    source  => "${source}",
-                    ensure  => "${ensure}",
+                    content => $content,
+                    source  => $source,
+                    ensure  => $ensure,
                     order   => 01,
                 }
             }
@@ -306,7 +306,7 @@ define apache::vhost(
                 concat::fragment { "${priority}-${servername}_header":
                     target  => "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
                     content => template('apache/vhost_header.erb'),
-                    ensure  => "${ensure}",
+                    ensure  => $ensure,
                     order   => 01,
                 }
 
@@ -314,7 +314,7 @@ define apache::vhost(
                 concat::fragment { "${priority}-${servername}_footer":
                     target  => "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
                     content => template('apache/vhost_footer.erb'),
-                    ensure  => "${ensure}",
+                    ensure  => $ensure,
                     order   => 99,
                 }
 
@@ -326,14 +326,14 @@ define apache::vhost(
                         mode    => '0644',
                         #seltype => "${apache::params::configdir_seltype}",
                         require => Package['apache2'],
-                        notify  => Exec["${apache::params::gracefulrestart}"],
+                        notify  => Exec[$apache::params::gracefulrestart],
                     }
 
                     # Header of the file
                     concat::fragment { "${priority}-${servername}-ssl_header":
                         target  => "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl${apache::params::vhost_extension}",
                         content => template('apache/vhost-ssl_header.erb'),
-                        ensure  => "${ensure}",
+                        ensure  => $ensure,
                         order   => 01,
                     }
 
@@ -341,7 +341,7 @@ define apache::vhost(
                     concat::fragment { "${priority}-${servername}-ssl_footer":
                         target  => "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl${apache::params::vhost_extension}",
                         content => template('apache/vhost-ssl_footer.erb'),
-                        ensure  => "${ensure}",
+                        ensure  => $ensure,
                         order   => 99,
                     }
                 }
@@ -350,11 +350,11 @@ define apache::vhost(
             # create the directory to host the www files
             file {"${apache::params::wwwdir}/${servername}":
                 ensure  => 'directory',
-                owner   => "${apache::params::wwwdir_owner}",
-                group   => "${apache::params::wwwdir_group}",
-                mode    => "${apache::params::wwwdir_mode}",
-                seltype => "${apache::params::configdir_seltype}",
-                require => File["${apache::params::wwwdir}"],
+                owner   => $apache::params::wwwdir_owner,
+                group   => $apache::params::wwwdir_group,
+                mode    => $apache::params::wwwdir_mode,
+                seltype => $apache::params::configdir_seltype,
+                require => File[$apache::params::wwwdir],
             }
 
             $htdocs_type = $htdocs_target ? {
@@ -362,16 +362,16 @@ define apache::vhost(
                 default => 'link',
             }
             file { "${apache::params::wwwdir}/${servername}/htdocs" :
-                ensure  => "${htdocs_type}",
+                ensure  => $htdocs_type,
             #   owner   => "${apache::params::user}",
-                group   => "${apache::params::group}",
-                mode    => "${apache::params::htdocs_mode}",
-                seltype => "${apache::params::configdir_seltype}",
+                group   => $apache::params::group,
+                mode    => $apache::params::htdocs_mode,
+                seltype => $apache::params::configdir_seltype,
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
             if ($htdocs_target != '') {
                 File["${apache::params::wwwdir}/${servername}/htdocs"] {
-                    target => "${htdocs_target}"
+                    target => $htdocs_target
                 }
             }
 
@@ -379,66 +379,66 @@ define apache::vhost(
             # to check that everything works as expected.
             if $testing_mode {
                 if ($htdocs_target != '') {
-                    fail("Cannot be in testing mode when htdocs_target is activated")
+                    fail('Cannot be in testing mode when htdocs_target is activated')
                 }
                 $indexfile = $apache::use_php ? {
                     true    => 'index.php',
                     default => 'index.html'
                 }
                 $indexfile_content = $apache::use_php ? {
-                    true    => "<?php phpinfo(); ?>",
-                    default => " "
+                    true    => '<?php phpinfo(); ?>',
+                    default => ' '
                 }
 
                 file { "${apache::params::wwwdir}/${servername}/htdocs/${indexfile}":
-                    ensure  => "${apache::ensure}",
-                    owner   => "${apache::params::user}",
-                    group   => "${apache::params::group}",
-                    mode    => "${apache::params::configfile_mode}",
+                    ensure  => $apache::ensure,
+                    owner   => $apache::params::user,
+                    group   => $apache::params::group,
+                    mode    => $apache::params::configfile_mode,
                     content => inline_template("<html><body><h1><%= servername %> works!</h1>${indexfile_content}</body></html>\n"),
                     require => File["${apache::params::wwwdir}/default-html"],
-                    notify  => Exec["${apache::params::gracefulrestart}"],
+                    notify  => Exec[$apache::params::gracefulrestart],
                 }
             }
 
             # place holder for CGI scripts
             file { "${apache::params::wwwdir}/${servername}/cgi-bin":
                 ensure  => 'directory',
-                owner   => "${apache::params::user}",
-                group   => "${apache::params::group}",
-                mode    => "${apache::params::wwwdir_mode}",
-                seltype => "${apache::params::cgidir_seltype}",
+                owner   => $apache::params::user,
+                group   => $apache::params::group,
+                mode    => $apache::params::wwwdir_mode,
+                seltype => $apache::params::cgidir_seltype,
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
 
             # place holder for logs
             file { "${apache::params::wwwdir}/${servername}/logs":
                 ensure  => 'directory',
-                owner   => "${apache::params::logdir_owner}",
-                group   => "${apache::params::logdir_group}",
-                mode    => "${apache::params::logdir_mode}",
-                seltype => "${apache::params::logdir_seltype}",
+                owner   => $apache::params::logdir_owner,
+                group   => $apache::params::logdir_group,
+                mode    => $apache::params::logdir_mode,
+                seltype => $apache::params::logdir_seltype,
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
             # Create the symbolic links to the real log files
             file { "${apache::params::wwwdir}/${servername}/logs/error.log":
                 ensure  => 'link',
                 target  => "${apache::params::logdir}/${servername}_error.log",
-                require => File["${apache::params::logdir}"]
+                require => File[$apache::params::logdir]
             }
             file { "${apache::params::wwwdir}/${servername}/logs/access.log":
-                ensure => 'link',
-                target => "${apache::params::logdir}/${servername}_access.log",
-                require => File["${apache::params::logdir}"]
+                ensure  => 'link',
+                target  => "${apache::params::logdir}/${servername}_access.log",
+                require => File[$apache::params::logdir]
             }
 
             # config data
             file { "${apache::params::wwwdir}/${servername}/config":
                 ensure  => 'directory',
-                owner   => "${apache::params::user}",
-                group   => "${apache::params::group}",
-                mode    => "${apache::params::wwwdir_mode}",
-                seltype => "${apache::params::privatedir_seltype}",
+                owner   => $apache::params::user,
+                group   => $apache::params::group,
+                mode    => $apache::params::wwwdir_mode,
+                seltype => $apache::params::privatedir_seltype,
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
             file { "${apache::params::wwwdir}/${servername}/config/vhost_${servername}":
@@ -450,10 +450,10 @@ define apache::vhost(
             # Private data
             file { "${apache::params::wwwdir}/${servername}/private":
                 ensure  => 'directory',
-                owner   => "${apache::params::user}",
-                group   => "${apache::params::group}",
-                mode    => "${apache::params::wwwdir_mode}",
-                seltype => "${apache::params::privatedir_seltype}",
+                owner   => $apache::params::user,
+                group   => $apache::params::group,
+                mode    => $apache::params::wwwdir_mode,
+                seltype => $apache::params::privatedir_seltype,
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
 
@@ -468,9 +468,9 @@ define apache::vhost(
 
                 file { "${apache::params::wwwdir}/${servername}/certificates":
                     ensure  => 'directory',
-                    owner   => "${apache::params::user}",
-                    group   => "${apache::params::group}",
-                    mode    => "${apache::params::wwwdir_mode}",
+                    owner   => $apache::params::user,
+                    group   => $apache::params::group,
+                    mode    => $apache::params::wwwdir_mode,
                     #seltype => "${apache::params::privatedir_seltype}",
                     require => File["${apache::params::wwwdir}/${servername}"],
                 }
@@ -478,52 +478,52 @@ define apache::vhost(
                 # Setup the certificates
                 if ($ssl_certfile_source != '') {
                     # The optional source URL of the certificate has been passed
-                    file { "$ssl_certfile":
+                    file { $ssl_certfile:
                         ensure  => 'file',
-                        owner   => "${apache::params::user}",
-                        group   => "${apache::params::group}",
+                        owner   => $apache::params::user,
+                        group   => $apache::params::group,
                         mode    => '0644',
-                        seltype => "${apache::params::certificates_seltype}",
-                        source  => "${ssl_certfile_source}",
+                        seltype => $apache::params::certificates_seltype,
+                        source  => $ssl_certfile_source,
                         require => File["${apache::params::wwwdir}/${servername}/certificates"],
                     }
                     # The associated keyfile should have been passed too...
                     if ($ssl_keyfile_source != '') {
-                        file { "$ssl_keyfile":
+                        file { $ssl_keyfile:
                             ensure  => 'file',
-                            owner   => "${apache::params::user}",
-                            group   => "${apache::params::group}",
+                            owner   => $apache::params::user,
+                            group   => $apache::params::group,
                             mode    => '0600',
-                            seltype => "${apache::params::certificates_seltype}",
-                            source  => "${ssl_keyfile_source}",
+                            seltype => $apache::params::certificates_seltype,
+                            source  => $ssl_keyfile_source,
                             require => File["${apache::params::wwwdir}/${servername}/certificates"],
                         }
                     }
                     else {
                         # Extra protection
-                        fail("the source of the key file of the certificate should have been passed")
+                        fail('the source of the key file of the certificate should have been passed')
                     }
                     # ... and also the CA certificate
                     if ($ssl_cacertfile_source != '') {
-                        file { "$ssl_cacertfile":
+                        file { $ssl_cacertfile:
                             ensure  => 'file',
-                            owner   => "${apache::params::user}",
-                            group   => "${apache::params::group}",
+                            owner   => $apache::params::user,
+                            group   => $apache::params::group,
                             mode    => '0600',
-                            seltype => "${apache::params::certificates_seltype}",
-                            source  => "${ssl_cacertfile_source}",
+                            seltype => $apache::params::certificates_seltype,
+                            source  => $ssl_cacertfile_source,
                             require => File["${apache::params::wwwdir}/${servername}/certificates"],
                         }
                     }
                     # or eventually the certification chain
                     if ($ssl_certchainfile_source != '') {
-                        file { "$ssl_certchainfile":
+                        file { $ssl_certchainfile:
                             ensure  => 'file',
-                            owner   => "${apache::params::user}",
-                            group   => "${apache::params::group}",
+                            owner   => $apache::params::user,
+                            group   => $apache::params::group,
                             mode    => '0600',
-                            seltype => "${apache::params::certificates_seltype}",
-                            source  => "${ssl_certchainfile_source}",
+                            seltype => $apache::params::certificates_seltype,
+                            source  => $ssl_certchainfile_source,
                             require => File["${apache::params::wwwdir}/${servername}/certificates"],
                         }
                     }
@@ -531,31 +531,31 @@ define apache::vhost(
                 else {
                     # here $ssl_certfile_source = '' i.e. one expects Puppet to
                     # generate a self-signed certificate for the site
-                    openssl::x509::generate { "${servername}":
-                        email        => "${serveradmin}",
-                        commonname   => "${fqdn}",
-                        ensure       => "${ensure}",
-                        country      => "${ssl_cert_country}",
-                        state        => "${ssl_cert_state}",
-                        locality     => "${ssl_cert_locality}",
-                        organization => "${ssl_cert_organisation}",
-                        organizational_unit => "${ssl_cert_organisational_unit}",
-                        days         => "${ssl_cert_days}",
-                        basedir      => "${apache::params::wwwdir}/${servername}/certificates",
-                        owner        => "${apache::params::user}",
-                        group        => "${apache::params::group}",
-                        self_signed  => true,
-                        require      => File["${apache::params::wwwdir}/${servername}/certificates"]
+                    openssl::x509::generate { $servername:
+                        email               => $serveradmin,
+                        commonname          => $fqdn,
+                        ensure              => $ensure,
+                        country             => $ssl_cert_country,
+                        state               => $ssl_cert_state,
+                        locality            => $ssl_cert_locality,
+                        organization        => $ssl_cert_organisation,
+                        organizational_unit => $ssl_cert_organisational_unit,
+                        days                => $ssl_cert_days,
+                        basedir             => "${apache::params::wwwdir}/${servername}/certificates",
+                        owner               => $apache::params::user,
+                        group               => $apache::params::group,
+                        self_signed         => true,
+                        require             => File["${apache::params::wwwdir}/${servername}/certificates"]
                     }
                 }
 
                 if ($ssl_crlfile_source != '') {
-                    file { "$ssl_crlfile":
-                        ensure => 'file',
-                        owner  => "${apache::params::user}",
-                        group  => "${apache::params::group}",
-                        mode   => '0600',
-                        source => "${ssl_crlfile_source}",
+                    file { $ssl_crlfile:
+                        ensure  => 'file',
+                        owner   => $apache::params::user,
+                        group   => $apache::params::group,
+                        mode    => '0600',
+                        source  => $ssl_crlfile_source,
                         require => File["${apache::params::wwwdir}/${servername}/certificates"],
                     }
                 }
@@ -568,8 +568,8 @@ define apache::vhost(
             file { "${apache::params::wwwdir}/${servername}/README":
                 content => template('apache/README_vhost.erb'),
                 ensure  => 'present',
-                owner   => "${apache::params::wwwdir_owner}",
-                group   => "${apache::params::wwwdir_group}",
+                owner   => $apache::params::wwwdir_owner,
+                group   => $apache::params::wwwdir_group,
                 mode    => '0644',
                 require => File["${apache::params::wwwdir}/${servername}"],
             }
@@ -578,7 +578,7 @@ define apache::vhost(
             # Now enable the virtual host
             exec{ "enable '${servername}' vhost":
                 command => "${apache::params::a2ensite} ${priority}-${servername}",
-                path => "/usr/bin:/usr/sbin/:/bin:/sbin",
+                path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
                 unless  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}${apache::params::vhost_extension}'",
                 require => [
                             Package['apache2'],
@@ -588,12 +588,12 @@ define apache::vhost(
                             File["${apache::params::wwwdir}/${servername}/logs"],
                             File["${apache::params::wwwdir}/${servername}/private"],
                             ],
-                notify  => Exec["${apache::params::gracefulrestart}"],
+                notify  => Exec[$apache::params::gracefulrestart],
             }
             if ($use_ssl) {
                 exec{ "enable '${servername}' SSL vhost":
                     command => "${apache::params::a2ensite} ${priority}-${servername}-ssl",
-                    path => "/usr/bin:/usr/sbin/:/bin:/sbin",
+                    path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
                     unless  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}-ssl${apache::params::vhost_extension}'",
                     require => [
                                 Package['apache2'],
@@ -604,7 +604,7 @@ define apache::vhost(
                                 File["${apache::params::wwwdir}/${servername}/private"],
                                 File["${apache::params::wwwdir}/${servername}/certificates"],
                                 ],
-                    notify  => Exec["${apache::params::gracefulrestart}"],
+                    notify  => Exec[$apache::params::gracefulrestart],
                 }
             }
         }
@@ -624,7 +624,7 @@ define apache::vhost(
 
             exec { "disable vhost ${servername}":
                 command => "${apache::params::a2dissite} ${priority}-${servername}",
-                notify  => Exec["${apache::params::gracefulrestart}"],
+                notify  => Exec[$apache::params::gracefulrestart],
                 require => Package['apache2'],
                 onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}${apache::params::vhost_extension}'",
             }
@@ -640,7 +640,7 @@ define apache::vhost(
                 }
                 exec { "disable SSL vhost ${servername}":
                     command => "${apache::params::a2dissite} ${priority}-${servername}-ssl${apache::params::vhost_extension}",
-                    notify  => Exec["${apache::params::gracefulrestart}"],
+                    notify  => Exec[$apache::params::gracefulrestart],
                     require => Package['apache2'],
                     onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}-ssl${apache::params::vhost_extension}'",
                 }
@@ -654,7 +654,7 @@ define apache::vhost(
         disabled: {
             exec { "disable vhost ${servername}":
                 command => "${apache::params::a2dissite} ${priority}-${servername}",
-                notify  => Exec["${apache::params::gracefulrestart}"],
+                notify  => Exec[$apache::params::gracefulrestart],
                 require => Package['apache2'],
                 onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}${apache::params::vhost_extension}'",
             }
@@ -666,7 +666,7 @@ define apache::vhost(
             if ($use_ssl) {
                 exec { "disable SSL vhost ${servername}":
                     command => "${apache::params::a2dissite} ${priority}-${servername}-ssl${apache::params::vhost_extension}",
-                    notify  => Exec["${apache::params::gracefulrestart}"],
+                    notify  => Exec[$apache::params::gracefulrestart],
                     require => Package['apache2'],
                     onlyif  => "test -L '${apache::params::vhost_enableddir}/${priority}-${servername}-ssl${apache::params::vhost_extension}'",
                 }

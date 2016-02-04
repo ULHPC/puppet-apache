@@ -132,7 +132,7 @@ define apache::vhost::reverse-proxy(
         }
     }
 
-    if ( ! defined(Apache::Vhost["${vhost}"])) {
+    if ( ! defined(Apache::Vhost[$vhost])) {
         crit("The Apache virtual host '${vhost}' has not been specified")
     }
     # TODO: check that the ensure parameter of Apache::Vhost["${vhost}"] is set
@@ -142,28 +142,28 @@ define apache::vhost::reverse-proxy(
         # Enable apache proxy module
         apache::module {'proxy':
             ensure => $ensure,
-            notify => Exec["${apache::params::gracefulrestart}"],
+            notify => Exec[$apache::params::gracefulrestart],
         }
     }
     if ( ! defined(Apache::Module[proxy_http])) {
         # Enable apache proxy module
         apache::module {'proxy_http':
             ensure => $ensure,
-            notify => Exec["${apache::params::gracefulrestart}"],
+            notify => Exec[$apache::params::gracefulrestart],
         }
     }
     if ( ! defined(Apache::Module[proxy_connect])) {
         # Enable apache proxy module
         apache::module {'proxy_connect':
             ensure => $ensure,
-            notify => Exec["${apache::params::gracefulrestart}"],
+            notify => Exec[$apache::params::gracefulrestart],
         }
     }
     if ( ! defined(Apache::Module[headers]) and $headers != {} ) {
         # Enable apache proxy module
         apache::module {'headers':
             ensure => $ensure,
-            notify => Exec["${apache::params::gracefulrestart}"],
+            notify => Exec[$apache::params::gracefulrestart],
         }
     }
 
@@ -197,8 +197,8 @@ define apache::vhost::reverse-proxy(
        ) {
 
         concat::fragment { "apache_vhost_${vhost}_proxy_settings":
-            target  => "${vhost_file}",
-            ensure  => "${ensure}",
+            target  => $vhost_file,
+            ensure  => $ensure,
             order   => '49',
             content => '
 
@@ -206,17 +206,17 @@ define apache::vhost::reverse-proxy(
     SSLProxyVerify none
 
 ',
-            notify  => Exec["${apache::params::gracefulrestart}"],
+            notify  => Exec[$apache::params::gracefulrestart],
         }
     }
 
     concat::fragment { "apache_vhost_${vhost}_proxy_${source_path}":
-        target  => "${vhost_file}",
-        ensure  => "${ensure}",
+        target  => $vhost_file,
+        ensure  => $ensure,
         order   => $order,
         content => $real_content,
         source  => $real_source,
-        notify  => Exec["${apache::params::gracefulrestart}"],
+        notify  => Exec[$apache::params::gracefulrestart],
     }
 }
 

@@ -100,12 +100,12 @@ define apache::listen(
     }
 
     concat::fragment { "apache-ports.conf_${listenport}":
-        target  => "${apache::params::ports_file}",
-        ensure  => "${ensure}",
+        target  => $apache::params::ports_file,
+        ensure  => $ensure,
         order   => $order,
         content => $real_content,
         source  => $real_source,
-        notify  => Exec["${apache::params::gracefulrestart}"],
+        notify  => Exec[$apache::params::gracefulrestart],
     }
 }
 

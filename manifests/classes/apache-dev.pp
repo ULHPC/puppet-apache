@@ -35,7 +35,7 @@ class apache::dev($ensure = $apache::ensure) inherits apache {
     }
 
     package { $apache::params::dev_packages:
-        ensure => "${apache::dev::ensure}",
+        ensure => $apache::dev::ensure,
     }
 
 }

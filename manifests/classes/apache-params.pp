@@ -32,13 +32,13 @@ class apache::params {
     # ensure the presence (or absence) of apache
     $ensure = $apache_ensure ? {
         ''      => 'present',
-        default => "${apache_ensure}"
+        default => $apache_ensure
     }
 
     # The Protocol used. Used by monitor and firewall class. Default is 'tcp'
     $protocol = $apache_protocol ? {
         ''      => 'tcp',
-        default => "${apache_protocol}",
+        default => $apache_protocol,
     }
     # The port number. Used by monitor and firewall class. The default is 80.
     $port = $apache_port ? {
@@ -55,25 +55,25 @@ class apache::params {
     # Whether or not to activate SSL for virtual hosts
     $use_ssl = $apache_use_ssl ? {
         ''      => false,
-        default => "${apache_use_ssl}",
+        default => $apache_use_ssl,
     }
 
     # Whether or not to activate PHP
     $use_php = $apache_use_php ? {
         ''      => false,
-        default => "${apache_use_php}",
+        default => $apache_use_php,
     }
 
     # Whether or not to redirect http requests to https (require mod_rewrite)
     $redirect_ssl  = $apache_redirect_ssl ? {
         ''      => false,
-        default => "${apache_redirect_ssl}",
+        default => $apache_redirect_ssl,
     }
 
     # This is the name of the group configured in sudoers to manage apache
     $admin_group = $apache_admin_group ? {
         ''      => 'apache-admin',
-        default => "${apache_admin_group}",
+        default => $apache_admin_group,
     }
 
 
@@ -81,49 +81,49 @@ class apache::params {
     $cache_root = $apache_cache_root ?
     {
       ''      => '/var/cache/apache2/mod_disk_cache',
-      default => "${apache_cache_root}",
+      default => $apache_cache_root,
     }
 
     $cache_path = $apache_cache_path ?
     {
       ''      => ['/'],
-      default => "${apache_cache_path}",
+      default => $apache_cache_path,
     }
 
     $cachedirlevels = $apache_cachedirlevels ?
     {
       ''      => 2,
-      default => "${apache_cachedirlevels}",
+      default => $apache_cachedirlevels,
     }
 
     $cachedirlength = $apache_cachedirlength ?
     {
       ''      => 1,
-      default => "${apache_cachedirlength}",
+      default => $apache_cachedirlength,
     }
 
     $cachemaxfilesize = $apache_cachemaxfilesize ?
     {
       ''      => 100000000,
-      default => "${apache_cachemaxfilesize}",
+      default => $apache_cachemaxfilesize,
     }
 
     $cacheignorenolastmod = $apache_cacheignorenolastmod ?
     {
       ''      => 'On',
-      default => "${apache_cacheignorenolastmod}",
+      default => $apache_cacheignorenolastmod,
     }
 
     $cachemaxexpire = $apache_cachemaxexpire ?
     {
       ''      => '300',
-      default => "${apache_cachemaxexpire}",
+      default => $apache_cachemaxexpire,
     }
 
     $cacheignorequerystring = $apache_cacheignorequerystring ?
     {
       ''      => 'Off',
-      default => "${apache_cacheignorequerystring}",
+      default => $apache_cacheignorequerystring,
     }
 
     #### MODULE INTERNAL VARIABLES  #########
@@ -245,10 +245,10 @@ class apache::params {
 
     # Virtual host dir
     $vhost_availabledir = $::operatingsystem ? {
-        default => "$configdir/sites-available",
+        default => "${configdir}/sites-available",
     }
     $vhost_enableddir = $::operatingsystem ? {
-        default => "$configdir/sites-enabled",
+        default => "${configdir}/sites-enabled",
     }
     # Default virtual host template file
     $vhost_default = $::operatingsystem ? {
@@ -281,16 +281,16 @@ class apache::params {
 
     # Apache modules dir
     $mods_availabledir = $::operatingsystem ? {
-        default => "$configdir/mods-available",
+        default => "${configdir}/mods-available",
     }
     $mods_enableddir = $::operatingsystem ? {
-        default => "$configdir/mods-enabled",
+        default => "${configdir}/mods-enabled",
     }
 
 
     # WWW data dir
     $wwwdir = $::operatingsystem ? {
-        default => "/var/www",
+        default => '/var/www',
     }
     $wwwdir_mode = $::operatingsystem ? {
         default => '0755',
@@ -353,7 +353,7 @@ class apache::params {
 
     # Whether or not to authorize htaccess configuration
     $allow_override = $::operatingsystem ? {
-        default => "None",
+        default => 'None',
     }
 
     # Certificates

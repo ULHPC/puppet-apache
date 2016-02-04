@@ -124,7 +124,7 @@ define apache::vhost::directory(
         }
     }
 
-    if ( ! defined(Apache::Vhost["${vhost}"])) {
+    if ( ! defined(Apache::Vhost[$vhost])) {
         crit("The Apache virtual host '${vhost}' has not been specified")
     }
     # TODO: check that the ensure parameter of Apache::Vhost["${vhost}"] is set
@@ -155,12 +155,12 @@ define apache::vhost::directory(
     }
 
     concat::fragment { "apache_vhost_${vhost}_directory_${dirname}":
-        target  => "${vhost_file}",
-        ensure  => "${ensure}",
+        target  => $vhost_file,
+        ensure  => $ensure,
         order   => $order,
         content => $real_content,
         source  => $real_source,
-        notify  => Exec["${apache::params::gracefulrestart}"],
+        notify  => Exec[$apache::params::gracefulrestart],
     }
 }
 

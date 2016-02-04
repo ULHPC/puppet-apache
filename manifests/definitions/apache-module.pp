@@ -74,27 +74,27 @@ define apache::module($ensure = 'present' #, $content='', $source=''
         present: {
             # TODO: this might not work if $apache::ensure != present because of
             # the dependency on Service['apache2']... 
-            exec { "enable apache module $name":
-                command => "${apache::params::a2enmod} $name",
+            exec { "enable apache module ${name}":
+                command => "${apache::params::a2enmod} ${name}",
                 unless  => "/bin/sh -c '[ -L ${apache::params::mods_enableddir}/${name}.load ] \\
                 && [ ${apache::params::mods_enableddir}/${name}.load -ef ${apache::params::mods_availabledir}/${name}.load ]'",
                 before  => Service['apache2'],
-                notify  => Exec["${apache::params::gracefulrestart}"],
+                notify  => Exec[$apache::params::gracefulrestart],
                 require => Package['apache2'];
             }
         }
         absent: {
-            exec { "disable apache module $name":
-                command => "${apache::params::a2dismod} $name",
+            exec { "disable apache module ${name}":
+                command => "${apache::params::a2dismod} ${name}",
                 onlyif  => "/bin/sh -c '[ -L ${apache::params::mods_enableddir}/${name}.load ] \\
                 && [ ${apache::params::mods_enableddir}/${name}.load -ef ${apache::params::mods_availabledir}/${name}.load ]'",
                 before  => Service['apache2'],
-                notify  => Exec["${apache::params::gracefulrestart}"],
+                notify  => Exec[$apache::params::gracefulrestart],
                 require => Package['apache2'];
             }
         }
         default: {
-            fail "Invalid 'ensure' parameter (current value '$ensure') for apache::module"
+            fail "Invalid 'ensure' parameter (current value '${ensure}') for apache::module"
         }
     }
 }

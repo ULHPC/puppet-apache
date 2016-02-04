@@ -59,14 +59,14 @@ inherits apache::params
     }
 
     if (! defined(Class['apache'])) {
-        fail("Class apache is not instencied")
+        fail('Class apache is not instencied')
     }
 
     case $::operatingsystem {
         debian, ubuntu:         { include apache::diskcache::debian }
         redhat, fedora, centos: { include apache::diskcache::redhat }
         default: {
-            fail("Module $module_name is not supported on $operatingsystem")
+            fail("Module ${module_name} is not supported on ${operatingsystem}")
         }
     }
 }
@@ -85,17 +85,17 @@ class apache::diskcache::common {
     # Activate the rewrite module for automatic SSL redirection
     apache::module { 'disk_cache':
         ensure => $apache::diskcache::ensure,
-        notify => Exec["${apache::params::gracefulrestart}"],
+        notify => Exec[$apache::params::gracefulrestart],
     }
 
 
     # The default virtual host file
     file { "${mods_availabledir}/disk_cache.conf":
-        ensure  => "$apache::diskcache::ensure",
-        owner   => "${apache::params::configdir_owner}",
-        group   => "${apache::params::configdir_group}",
-        mode    => "${apache::params::configfile_mode}",
-        seltype => "${apache::params::configdir_seltype}",
+        ensure  => $apache::diskcache::ensure,
+        owner   => $apache::params::configdir_owner,
+        group   => $apache::params::configdir_group,
+        mode    => $apache::params::configfile_mode,
+        seltype => $apache::params::configdir_seltype,
         content => template("apache/${apache::params::disk_cache_template}"),
     }
 }

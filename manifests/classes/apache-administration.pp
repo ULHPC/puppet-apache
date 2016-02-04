@@ -54,7 +54,7 @@ inherits apache
         fail("apache::administration 'admin_group parameter must be set")
     }
 
-    group { "$admin_group":
+    group { $admin_group:
         ensure => $ensure,
     }
 
@@ -71,15 +71,15 @@ inherits apache
         cmdlist => [
                     "/etc/init.d/${apache::params::servicename}",
                     "/bin/su ${apache::params::user}",
-                    "/bin/su - ${apache::params::user}",                    
+                    "/bin/su - ${apache::params::user}",
                     $apache::params::admin_cmdlist
-                    ],        
+                    ],
     }
     
     sudo::directive { "sudo_${admin_group}":
         ensure  => $ensure,
-        content => template("apache/sudoers.apache-admin.erb"),
-        require => Group["$admin_group"],
+        content => template('apache/sudoers.apache-admin.erb'),
+        require => Group[$admin_group],
     }
 
 
