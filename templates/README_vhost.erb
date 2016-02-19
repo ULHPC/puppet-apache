@@ -1,0 +1,55 @@
+-*- mode: markdown; mode: auto-fill; fill-column: 80 -*-
+
+<%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>/README
+
+------------------------------------------------------------
+	 ____  _____    _    ____  __  __ _____ 
+	|  _ \| ____|  / \  |  _ \|  \/  | ____|
+	| |_) |  _|   / _ \ | | | | |\/| |  _|  
+	|  _ <| |___ / ___ \| |_| | |  | | |___ 
+	|_| \_\_____/_/   \_\____/|_|  |_|_____|
+                                                            
+------------------------------------------------------------
+
+Your website is configured in the directory <%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>
+
+Directory organization 
+-----------------------
+
+* `config/`: you'll find here symlinks to the Apache configuration file(s) of this vhost.
+
+* `htdocs/`: this is where you put the files you are publishing on your website.
+  The first presented to the visitors (eg: when they visit "http://<%= servername %>/")
+  must be named "index.html". "index.php" also works for PHP websites.
+
+* `cgi-bin/`: this is where you put perl or shell scripts that will be executed when they are
+   accessed by visitors. The content of this directory is available at this
+   address: http://<%= servername %>/cgi-bin/
+
+* `private/`: in this directory you can store any data that needs to be accessible by the
+   web server but not published on the web. For example password files or user
+   sessions.
+
+* `logs/`: you will find in this directory the full access and error logs for your
+   website. Actually, they are symbolic liks to the real log files of your web site, 
+   namelly: 
+
+ * `<%= scope.lookupvar('apache::params::logdir') %>/<%= servername %>_error.log`
+ * `<%= scope.lookupvar('apache::params::logdir') %>/<%= servername %>_access.log`
+
+* `certificates/`: if you have https enabled for this site, the SSL certificates of your 
+  website will be located here.
+
+Apache configuration 
+---------------------
+
+The main Apache configuration file is located in:
+
+ 		<%= scope.lookupvar('apache::params::vhost_availabledir') %>/<%= priority %>-<%= servername %>
+
+Site management 
+----------------
+
+Most part of your website are configured via [Puppet](http://puppetlabs.com/). 
+
+Contact the [CSC admins](mailto:csc-admins@uni.lu) for more details. 

@@ -1,0 +1,56 @@
+File::      <tt>README</tt> 
+Author::    Sebastien Varrette (Sebastien.Varrette@uni.lu)
+Copyright:: Copyright (c) 2011 Sebastien Varrette
+License::   GPLv3
+
+------------------------------------------------------------------------------
+
+= MODULE
+
+apache 
+
+= DESCRIPTION
+
+This is the apache module.
+Manages apache servers, remote restarts, and mod_ssl, mod_php, mod_python, mod_perl
+
+== Supported Platforms
+
+* Debian
+* Redhat and others: not  tested yet)
+
+== Main classes
+
+* apache($ensure) :: Install and configure apache
+
+== Sample Usage
+
+     import apache
+     [...]
+     class { 'apache':
+           ensure => 'present'
+     }
+
+= Author/Licence
+
+The apache module is 
+Copyright (c) 2011 Sebastien Varrette[mailto:Sebastien.Varrette@uni.lu]. 
+
+It is a free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details. 
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <http://www.gnu.org/licenses/>.  
+
+= Resources
+
+The design of this module is inspired by the following contributions: 
+
+* Ghoneycutt[https://github.com/ghoneycutt/puppet-apache]
+* camptocamp[https://github.com/camptocamp/puppet-apache]
+* puppetlabs[https://github.com/puppetlabs/puppetlabs-apache]
+

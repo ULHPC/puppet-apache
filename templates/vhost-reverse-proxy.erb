@@ -1,0 +1,26 @@
+<% if comment != "" -%>
+
+   ##### <%= comment %>
+<% end -%>
+    <Location <%= source_path %>>
+<% if target_url != "" -%>
+        ProxyPass <%= target_url %>
+        ProxyPassReverse <%= target_url %>
+<% end -%>
+<% if allow_from == [] -%>
+        Order         allow,deny
+        Allow from    all
+<% else -%>
+        Order Deny,Allow
+        # /!\ List here the authorized IP for accessing <%= source_path %>
+<% allow_from.each do |ipaddr| -%>
+        Allow from <%= ipaddr %>
+<% end -%>
+        Deny from all
+<% end -%>
+<% headers.each_pair do |key, value| -%>
+        RequestHeader set <%= key %> '<%= value %>'
+<% end -%>
+    </Location>
+    # End of configuration of <%= source_path %>
+
