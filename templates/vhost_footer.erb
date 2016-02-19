@@ -1,0 +1,9 @@
+
+    ##############################
+    ErrorLog <%= scope.lookupvar('apache::params::logdir') %>/<%= servername %>_error.log
+    # Possible values include: debug, info, notice, warn, error, crit,
+    # alert, emerg.
+    LogLevel warn
+    CustomLog <%= scope.lookupvar('apache::params::logdir') %>/<%= servername %>_access.log combined
+</VirtualHost>
+

@@ -1,0 +1,9 @@
+## DO NOT EDIT!
+## This part is managed by Puppet (via the puppet class apache::administration)
+
+# This allows the member of the group '<%= scope.lookupvar('apache::administration::admin_group') %>' to 
+# administrate Apache
+# Please refer to the APACHE_ADMIN command alias to check the authorized commands
+%<%= scope.lookupvar('apache::administration::admin_group') %> ALL=(<%= scope.lookupvar('apache::params::user') %>) ALL : ALL=(root) APACHE_ADMIN
+## END OF <%= name %>
+
