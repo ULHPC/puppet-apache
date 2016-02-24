@@ -1,7 +1,8 @@
-# File::      <tt>apache-listen.pp</tt>
-# Author::    Sebastien Varrette (<Sebastien.Varrette@uni.lu>)
-# Copyright:: Copyright (c) 2011 Sebastien Varrette (www[http://varrette.gforge.uni.lu])
-# License::   GPLv3
+# File::      <tt>listen.pp</tt>
+# Author::    S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team (hpc-sysadmins@uni.lu)
+# Copyright:: Copyright (c) 2016 S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team
+# License::   Gpl-3.0
+#
 # ------------------------------------------------------------------------------
 # = Defines: apache::listen
 #
@@ -100,8 +101,8 @@ define apache::listen(
     }
 
     concat::fragment { "apache-ports.conf_${listenport}":
-        target  => $apache::params::ports_file,
         ensure  => $ensure,
+        target  => $apache::params::ports_file,
         order   => $order,
         content => $real_content,
         source  => $real_source,

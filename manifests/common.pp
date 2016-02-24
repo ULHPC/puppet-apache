@@ -1,77 +1,17 @@
-# File::      <tt>apache.pp</tt>
-# Author::    Sebastien Varrette (Sebastien.Varrette@uni.lu)
-# Copyright:: Copyright (c) 2011 Sebastien Varrette
-# License::   GPLv3
+# File::      <tt>common.pp</tt>
+# Author::    S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team (hpc-sysadmins@uni.lu)
+# Copyright:: Copyright (c) 2016 S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team
+# License::   Gpl-3.0
 #
-# ------------------------------------------------------------------------------
-# = Class: apache
-#
-# Manages apache servers, remote restarts, and mod_ssl, mod_php, mod_python, mod_perl
-#
-# == Parameters:
-#
-# $ensure:: *Default*: 'present'. Ensure the presence (or absence) of apache
-#
-# == Actions:
-#
-# Install and configure apache
-#
-# == Requires:
-#
-# n/a
-#
-# == Sample Usage:
-#
-#     import apache
-#
-# You can then specialize the various aspects of the configuration,
-# for instance:
-#
-#         class { 'apache':
-#             arg => 'val'
-#         }
-#
-# == Warnings
-#
-# /!\ Always respect the style guide available
-# here[http://docs.puppetlabs.com/guides/style_guide]
-#
-#
-# [Remember: No empty lines between comments and class definition]
-#
-class apache(
-    $ensure  = $apache::params::ensure,
-    $use_ssl = $apache::params::use_ssl,
-    $use_php = $apache::params::use_php,
-    $redirect_ssl = $apache::params::redirect_ssl,
-    $enable_default_listen = true
-)
-inherits apache::params
-{
-    info ("Configuring apache (with ensure = ${ensure}, use_ssl = ${use_ssl}, redirect_ssl = ${redirect_ssl})")
-
-    if ! ($ensure in [ 'present', 'absent' ]) {
-        fail("apache 'ensure' parameter must be set to either 'absent' or 'present'")
-    }
-
-    case $::operatingsystem {
-        debian, ubuntu:         { include apache::debian }
-        redhat, fedora, centos: { include apache::redhat }
-        default: {
-            fail("Module ${module_name} is not supported on ${operatingsystem}")
-        }
-    }
-}
-
 # ------------------------------------------------------------------------------
 # = Class: apache::common
 #
-# Base class to be inherited by the other apache classes
+# Base class to be inherited by the other apache classes, containing the common code.
 #
 # Note: respect the Naming standard provided here[http://projects.puppetlabs.com/projects/puppet/wiki/Module_Standards]
 class apache::common {
 
-    # Load the variables used in this module. Check the apache-params.pp file
+    # Load the variables used in this module. Check the params.pp file
     require apache::params
 
     $sslensure = $apache::use_ssl ? {
@@ -85,8 +25,8 @@ class apache::common {
 
     # Package to install
     package { 'apache2':
-        name   => $apache::params::packagename,
         ensure => $apache::ensure,
+        name   => $apache::params::packagename,
     }
 
     package { $apache::params::php_packages:
@@ -140,32 +80,30 @@ class apache::common {
 
         # main root configuration dir (/etc/apache2 on Debian systems)
         file { $apache::params::configdir:
+            ensure  => 'directory',
             owner   => $apache::params::configdir_owner,
             group   => $apache::params::configdir_group,
             mode    => $apache::params::configdir_mode,
-            ensure  => 'directory',
             require => Package['apache2'],
         }
 
         # Other configuration files directory (conf.d)
         file { $apache::params::otherconfigdir:
+            ensure  => 'directory',
             owner   => $apache::params::configdir_owner,
             group   => $apache::params::configdir_group,
             mode    => $apache::params::configdir_mode,
-            ensure  => 'directory',
             require => [
                         File[$apache::params::configdir],
                         Package['apache2']
                         ],
         }
 
-        include concat::setup
         concat { $apache::params::ports_file:
             warn    => false,
             owner   => $apache::params::configdir_owner,
             group   => $apache::params::configdir_group,
             mode    => $apache::params::configfile_mode,
-            #seltype => "${apache::params::configdir_seltype}",
             require => Package['apache2'],
             notify  => Exec[$apache::params::gracefulrestart],
         }
@@ -179,17 +117,17 @@ class apache::common {
         }
 
         concat::fragment { "${apache::params::ports_file}_header":
-            target  => $apache::params::ports_file,
             ensure  => $apache::ensure,
-            order   => '01',
+            target  => $apache::params::ports_file,
+            order   => 1,
             content => template('apache/ports.conf_header.erb'),
             notify  => Exec[$apache::params::gracefulrestart],
         }
 
         concat::fragment { $apache::params::ports_file_default_entry:
-            target  => $apache::params::ports_file,
             ensure  => $ports_file_ensure_default_entry,
-            order   => '10',
+            target  => $apache::params::ports_file,
+            order   => 10,
             content => template("apache/${apache::params::ports_template}"),
             notify  => Exec[$apache::params::gracefulrestart],
         }
@@ -219,12 +157,12 @@ class apache::common {
             require => File[$apache::params::wwwdir],
         }
 
-        $indexfile = $use_php ? {
+        $indexfile = $apache::use_php ? {
             true    => 'index.php',
             default => 'index.html'
         }
 
-        $indexfile_content = $use_php ? {
+        $indexfile_content = $apache::use_php ? {
             true    => '<?php phpinfo(); ?>',
             default => ' '
         }
@@ -242,19 +180,19 @@ class apache::common {
 
         # CGI bin directory
         file { $apache::params::cgidir:
+            ensure  => 'directory',
             owner   => $apache::params::cgidir_owner,
             group   => $apache::params::cgidir_group,
             mode    => $apache::params::cgidir_mode,
-            ensure  => 'directory',
             require => Package['apache2'],
         }
 
         # Apache Logs directory
         file { $apache::params::logdir:
+            ensure  => 'directory',
             owner   => $apache::params::logdir_owner,
             group   => $apache::params::logdir_group,
             mode    => $apache::params::logdir_mode,
-            ensure  => 'directory',
             require => Package['apache2'],
         }
 
@@ -265,10 +203,10 @@ class apache::common {
                 $apache::params::mods_availabledir,
                 $apache::params::mods_enableddir
                 ]:
+                    ensure  => 'directory',
                     owner   => $apache::params::configdir_owner,
                     group   => $apache::params::configdir_group,
                     mode    => $apache::params::configdir_mode,
-                    ensure  => 'directory',
                     seltype => $apache::params::configdir_seltype,
                     notify  => Exec[$apache::params::gracefulrestart],
                     require => Package['apache2'],
@@ -289,9 +227,9 @@ class apache::common {
         # TODO: remove default-ssl?
 
         service { 'apache2':
+            ensure     => running,
             name       => $apache::params::servicename,
             enable     => true,
-            ensure     => running,
             hasrestart => $apache::params::hasrestart,
             pattern    => $apache::params::processname,
             hasstatus  => $apache::params::hasstatus,
@@ -304,102 +242,6 @@ class apache::common {
         # Here $apache::ensure is 'absent'
 
     }
-}
-
-
-# ------------------------------------------------------------------------------
-# = Class: apache::debian
-#
-# Specialization class for Debian systems
-class apache::debian inherits apache::common {
-    package { 'apache2-mpm-prefork':
-        ensure  => $apache::ensure,
-        require => Package['apache2'],
-    }
-
-    if $apache::use_ssl {
-        if !defined(Package['ca-certificates']) {
-            package { 'ca-certificates':
-                ensure => $apache::ensure,
-            }
-        }
-
-        if ($lsbdistcodename in ['squeeze', 'wheezy']) {
-            # SSL configuration
-            file { "${mods_availabledir}/ssl.conf":
-                ensure  => $apache::ensure,
-                owner   => $apache::params::configdir_owner,
-                group   => $apache::params::configdir_group,
-                mode    => $apache::params::configfile_mode,
-                seltype => $apache::params::configdir_seltype,
-                source  => "puppet:///modules/apache/conf_${lsbdistcodename}/ssl.conf",
-                notify  => Exec[$apache::params::gracefulrestart],
-            }
-        }
-
-    }
-
-    # Apache security configuration
-    file { "${otherconfigdir}/security":
-        ensure  => $apache::ensure,
-        owner   => $apache::params::configdir_owner,
-        group   => $apache::params::configdir_group,
-        mode    => $apache::params::configfile_mode,
-        seltype => $apache::params::configdir_seltype,
-        source  => 'puppet:///modules/apache/security',
-        notify  => Exec[$apache::params::gracefulrestart],
-    }
 
 }
-
-# ------------------------------------------------------------------------------
-# = Class: apache::redhat
-#
-# Specialization class for Redhat systems
-class apache::redhat inherits apache::common {
-
-    file { [
-            '/usr/local/sbin/a2ensite',
-            '/usr/local/sbin/a2dissite',
-            '/usr/local/sbin/a2enmod',
-            '/usr/local/sbin/a2dismod'
-            ] :
-                ensure => $apache::ensure,
-                mode   => '0755',
-                owner  => 'root',
-                group  => 'root',
-                source => 'puppet:///modules/apache/usr/local/sbin/a2X.redhat',
-    }
-
-    # Add dependency for the apache::module definition
-    Apache::Module {
-        require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ]
-    }
-
-    if ($apache::use_ssl) {
-        package { 'mod_ssl' :
-            ensure  => $apache::ensure,
-            require => Package['apache2']
-        }
-    }
-
-    # Enable php module
-    apache::module {'php5':
-        ensure => $apache::common::phpensure,
-        notify => Exec[$apache::params::gracefulrestart],
-    }
-
-    # Add seltype 'httpd_config_t' for /etc/httpd and {mods,sites}-{enabled,available} files
-    # TODO
-
-    # this module is statically compiled on debian and must be enabled here
-    apache::module { 'log_config':
-        ensure => $apache::ensure,
-        notify => Exec[$apache::params::gracefulrestart],
-    }
-
-
-}
-
-
 

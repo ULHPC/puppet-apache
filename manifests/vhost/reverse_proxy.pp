@@ -1,9 +1,10 @@
-# File::      <tt>apache-vhost-reverse-proxy.pp</tt>
-# Author::    Sebastien Varrette (<Sebastien.Varrette@uni.lu>)
-# Copyright:: Copyright (c) 2011 Sebastien Varrette (www[http://varrette.gforge.uni.lu])
-# License::   GPLv3
+# File::      <tt>vhost/reverse_proxy.pp</tt>
+# Author::    S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team (hpc-sysadmins@uni.lu)
+# Copyright:: Copyright (c) 2016 S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team
+# License::   Gpl-3.0
+#
 # ------------------------------------------------------------------------------
-# = Defines: apache::vhost::reverse-proxy
+# = Defines: apache::vhost::reverse_proxy
 #
 # This definition map a remote server in the local url space for an apache vhost
 #
@@ -70,7 +71,7 @@
 #         use_php  => true,
 #    }
 #
-#    apache::vhost::reverse-proxy { '/ganglia/':
+#    apache::vhost::reverse_proxy { '/ganglia/':
 #         vhost       => 'localtest.domain.com',
 #         ensure      => 'present',
 #         target_url  => 'http://supervision.gaia-cluster.uni.lux/ganglia',
@@ -104,7 +105,7 @@
 #
 # [Remember: No empty lines between comments and class definition]
 #
-define apache::vhost::reverse-proxy(
+define apache::vhost::reverse_proxy(
     $vhost,
     $ensure     = 'present',
     $content    = '',
@@ -128,7 +129,7 @@ define apache::vhost::reverse-proxy(
     }
     if ($apache::ensure != $ensure) {
         if ($apache::ensure != 'present') {
-            fail("Cannot configure the directory '${dname}' as apache::ensure is NOT set to present (but ${apache::ensure})")
+            fail("Cannot configure the directory '${apache::vhost::directory::dirname}' as apache::ensure is NOT set to present (but ${apache::ensure})")
         }
     }
 
@@ -187,18 +188,18 @@ define apache::vhost::reverse-proxy(
     # Problem: I don't know how to deal with it.
     $priority = '010'
     $vhost_file = $apache::use_ssl ? {
-        true    => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl${vhost_extension}",
-        default => "${apache::params::vhost_availabledir}/${priority}-${vhost}${vhost_extension}"
+        true    => "${apache::params::vhost_availabledir}/${priority}-${vhost}-ssl${apache::params::vhost_extension}",
+        default => "${apache::params::vhost_availabledir}/${priority}-${vhost}${apache::params::vhost_extension}"
     }
 
 
     if (     gsub($target_url, '^https.*', 'https') == 'https'
         and ! defined(Concat::Fragment["apache_vhost_${vhost}_proxy_settings"])
-       ) {
+      ) {
 
         concat::fragment { "apache_vhost_${vhost}_proxy_settings":
-            target  => $vhost_file,
             ensure  => $ensure,
+            target  => $vhost_file,
             order   => '49',
             content => '
 
@@ -211,8 +212,8 @@ define apache::vhost::reverse-proxy(
     }
 
     concat::fragment { "apache_vhost_${vhost}_proxy_${source_path}":
-        target  => $vhost_file,
         ensure  => $ensure,
+        target  => $vhost_file,
         order   => $order,
         content => $real_content,
         source  => $real_source,

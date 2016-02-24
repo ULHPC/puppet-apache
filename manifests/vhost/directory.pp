@@ -1,7 +1,8 @@
-# File::      <tt>apache-vhost-directory.pp</tt>
-# Author::    Sebastien Varrette (<Sebastien.Varrette@uni.lu>)
-# Copyright:: Copyright (c) 2011 Sebastien Varrette (www[http://varrette.gforge.uni.lu])
-# License::   GPLv3
+# File::      <tt>vhost/directory.pp</tt>
+# Author::    S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team (hpc-sysadmins@uni.lu)
+# Copyright:: Copyright (c) 2016 S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team
+# License::   Gpl-3.0
+#
 # ------------------------------------------------------------------------------
 # = Defines: apache::vhost::directory
 #
@@ -120,7 +121,7 @@ define apache::vhost::directory(
     }
     if ($apache::ensure != $ensure) {
         if ($apache::ensure != 'present') {
-            fail("Cannot configure the directory '${dname}' as apache::ensure is NOT set to present (but ${apache::ensure})")
+            fail("Cannot configure the directory '${dirname}' as apache::ensure is NOT set to present (but ${apache::ensure})")
         }
     }
 
@@ -155,8 +156,8 @@ define apache::vhost::directory(
     }
 
     concat::fragment { "apache_vhost_${vhost}_directory_${dirname}":
-        target  => $vhost_file,
         ensure  => $ensure,
+        target  => $vhost_file,
         order   => $order,
         content => $real_content,
         source  => $real_source,

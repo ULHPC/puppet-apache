@@ -1,7 +1,7 @@
-# File::      <tt>apache-params.pp</tt>
-# Author::    Sebastien Varrette (Sebastien.Varrette@uni.lu)
-# Copyright:: Copyright (c) 2011 Sebastien Varrette
-# License::   GPL v3
+# File::      <tt>params.pp</tt>
+# Author::    S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team (hpc-sysadmins@uni.lu)
+# Copyright:: Copyright (c) 2016 S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team
+# License::   Gpl-3.0
 #
 # ------------------------------------------------------------------------------
 # = Class: apache::params
@@ -30,100 +30,100 @@ class apache::params {
     ###########################################
 
     # ensure the presence (or absence) of apache
-    $ensure = $apache_ensure ? {
+    $ensure = $::apache_ensure ? {
         ''      => 'present',
-        default => $apache_ensure
+        default => $::apache_ensure
     }
 
     # The Protocol used. Used by monitor and firewall class. Default is 'tcp'
-    $protocol = $apache_protocol ? {
+    $protocol = $::apache_protocol ? {
         ''      => 'tcp',
-        default => $apache_protocol,
+        default => $::apache_protocol,
     }
-    # The port number. Used by monitor and firewall class. The default is 80.
-    $port = $apache_port ? {
-        ''      => [ '80' ],
-        default => $apache_port,
+    # The port number. Used by monitor and firewall class. The default is 22.
+    $port = $::apache_port ? {
+        ''      => 80,
+        default => $::apache_port,
     }
 
     # The SSL port number. Used by monitor and firewall class. The default is 443.
-    $ssl_port = $apache_ssl_port ? {
-        ''      => [ '443' ],
-        default => $apache_ssl_port,
+    $ssl_port = $::apache_ssl_port ? {
+        ''      => 443,
+        default => $::apache_ssl_port,
     }
 
     # Whether or not to activate SSL for virtual hosts
-    $use_ssl = $apache_use_ssl ? {
+    $use_ssl = $::apache_use_ssl ? {
         ''      => false,
-        default => $apache_use_ssl,
+        default => $::apache_use_ssl,
     }
 
     # Whether or not to activate PHP
-    $use_php = $apache_use_php ? {
+    $use_php = $::apache_use_php ? {
         ''      => false,
-        default => $apache_use_php,
+        default => $::apache_use_php,
     }
 
     # Whether or not to redirect http requests to https (require mod_rewrite)
-    $redirect_ssl  = $apache_redirect_ssl ? {
+    $redirect_ssl  = $::apache_redirect_ssl ? {
         ''      => false,
-        default => $apache_redirect_ssl,
+        default => $::apache_redirect_ssl,
     }
 
     # This is the name of the group configured in sudoers to manage apache
-    $admin_group = $apache_admin_group ? {
+    $admin_group = $::apache_admin_group ? {
         ''      => 'apache-admin',
-        default => $apache_admin_group,
+        default => $::apache_admin_group,
     }
 
 
     # https://httpd.apache.org/docs/2.2/mod/mod_disk_cache.html
-    $cache_root = $apache_cache_root ?
+    $cache_root = $::apache_cache_root ?
     {
       ''      => '/var/cache/apache2/mod_disk_cache',
-      default => $apache_cache_root,
+      default => $::apache_cache_root,
     }
 
-    $cache_path = $apache_cache_path ?
+    $cache_path = $::apache_cache_path ?
     {
       ''      => ['/'],
-      default => $apache_cache_path,
+      default => $::apache_cache_path,
     }
 
-    $cachedirlevels = $apache_cachedirlevels ?
+    $cachedirlevels = $::apache_cachedirlevels ?
     {
       ''      => 2,
-      default => $apache_cachedirlevels,
+      default => $::apache_cachedirlevels,
     }
 
-    $cachedirlength = $apache_cachedirlength ?
+    $cachedirlength = $::apache_cachedirlength ?
     {
       ''      => 1,
-      default => $apache_cachedirlength,
+      default => $::apache_cachedirlength,
     }
 
-    $cachemaxfilesize = $apache_cachemaxfilesize ?
+    $cachemaxfilesize = $::apache_cachemaxfilesize ?
     {
       ''      => 100000000,
-      default => $apache_cachemaxfilesize,
+      default => $::apache_cachemaxfilesize,
     }
 
-    $cacheignorenolastmod = $apache_cacheignorenolastmod ?
+    $cacheignorenolastmod = $::apache_cacheignorenolastmod ?
     {
       ''      => 'On',
-      default => $apache_cacheignorenolastmod,
+      default => $::apache_cacheignorenolastmod,
     }
 
-    $cachemaxexpire = $apache_cachemaxexpire ?
+    $cachemaxexpire = $::apache_cachemaxexpire ?
     {
       ''      => '300',
-      default => $apache_cachemaxexpire,
+      default => $::apache_cachemaxexpire,
     }
 
-    $cacheignorequerystring = $apache_cacheignorequerystring ?
+    $cacheignorequerystring = $::apache_cacheignorequerystring ?
     {
       ''      => 'Off',
-      default => $apache_cacheignorequerystring,
+      default => $::apache_cacheignorequerystring,
     }
 
     #### MODULE INTERNAL VARIABLES  #########
@@ -401,7 +401,7 @@ class apache::params {
 
     # This is the list of commands to authorize for the users put in the
     # $apache::admin_group group (inside the /etc/sudoers file)
-    $admin_cmd = $apache_admin_group ? {
+    $admin_cmd = $::apache_admin_group ? {
         /(?i-mx:ubuntu|debian)/        => [ '/usr/sbin/apache2ctl' ],
         /(?i-mx:centos|fedora|redhat)/ => [ '/usr/sbin/apache2ctl', "/sbin/service ${servicename}" ],
         default => [ ],

@@ -1,7 +1,8 @@
-# File::      <tt>apache-vhost.pp</tt>
-# Author::    Sebastien Varrette (<Sebastien.Varrette@uni.lu>)
-# Copyright:: Copyright (c) 2011 Sebastien Varrette (www[http://varrette.gforge.uni.lu])
-# License::   GPLv3
+# File::      <tt>vhost.pp</tt>
+# Author::    S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team (hpc-sysadmins@uni.lu)
+# Copyright:: Copyright (c) 2016 S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team
+# License::   Gpl-3.0
+#
 # ------------------------------------------------------------------------------
 # = Defines: apache::vhost
 #
@@ -279,8 +280,6 @@ define apache::vhost(
     case $ensure {
         present: {
 
-            include concat::setup
-
             concat { "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}":
                 warn    => false,
                 owner   => 'root',
@@ -293,28 +292,28 @@ define apache::vhost(
 
             if ($content != '' or $source != '') {
                 concat::fragment { "${priority}-${servername}_content":
+                    ensure  => $ensure,
                     target  => "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
                     content => $content,
                     source  => $source,
-                    ensure  => $ensure,
-                    order   => 01,
+                    order   => 1,
                 }
             }
             else
             {
                 # Header of the file
                 concat::fragment { "${priority}-${servername}_header":
+                    ensure  => $ensure,
                     target  => "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
                     content => template('apache/vhost_header.erb'),
-                    ensure  => $ensure,
-                    order   => 01,
+                    order   => 1,
                 }
 
                 # Footer of the file
                 concat::fragment { "${priority}-${servername}_footer":
+                    ensure  => $ensure,
                     target  => "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
                     content => template('apache/vhost_footer.erb'),
-                    ensure  => $ensure,
                     order   => 99,
                 }
 
@@ -331,17 +330,17 @@ define apache::vhost(
 
                     # Header of the file
                     concat::fragment { "${priority}-${servername}-ssl_header":
+                        ensure  => $ensure,
                         target  => "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl${apache::params::vhost_extension}",
                         content => template('apache/vhost-ssl_header.erb'),
-                        ensure  => $ensure,
-                        order   => 01,
+                        order   => 1,
                     }
 
                     # Footer of the file
                     concat::fragment { "${priority}-${servername}-ssl_footer":
+                        ensure  => $ensure,
                         target  => "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl${apache::params::vhost_extension}",
                         content => template('apache/vhost-ssl_footer.erb'),
-                        ensure  => $ensure,
                         order   => 99,
                     }
                 }
@@ -532,9 +531,9 @@ define apache::vhost(
                     # here $ssl_certfile_source = '' i.e. one expects Puppet to
                     # generate a self-signed certificate for the site
                     openssl::x509::generate { $servername:
-                        email               => $serveradmin,
-                        commonname          => $fqdn,
                         ensure              => $ensure,
+                        email               => $serveradmin,
+                        commonname          => $::fqdn,
                         country             => $ssl_cert_country,
                         state               => $ssl_cert_state,
                         locality            => $ssl_cert_locality,
@@ -566,8 +565,8 @@ define apache::vhost(
 
             # README file
             file { "${apache::params::wwwdir}/${servername}/README":
-                content => template('apache/README_vhost.erb'),
                 ensure  => 'present',
+                content => template('apache/README_vhost.erb'),
                 owner   => $apache::params::wwwdir_owner,
                 group   => $apache::params::wwwdir_group,
                 mode    => '0644',
@@ -612,14 +611,14 @@ define apache::vhost(
         absent: {
             file {
                 [
-                 "${apache::params::vhost_enableddir}/${priority}-${servername}${apache::params::vhost_extension}",
-                 "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
-                 "${apache::params::wwwdir}/${servername}",
-                 ]:
-                     ensure  => 'absent',
-                     recurse => true,
-                     force   => true,
-                     require => Exec["disable vhost ${servername}"]
+                  "${apache::params::vhost_enableddir}/${priority}-${servername}${apache::params::vhost_extension}",
+                  "${apache::params::vhost_availabledir}/${priority}-${servername}${apache::params::vhost_extension}",
+                  "${apache::params::wwwdir}/${servername}",
+                ]:
+                  ensure  => 'absent',
+                  recurse => true,
+                  force   => true,
+                  require => Exec["disable vhost ${servername}"]
             }
 
             exec { "disable vhost ${servername}":
@@ -631,12 +630,12 @@ define apache::vhost(
             if ($use_ssl) {
                 file {
                     [
-                     "${apache::params::vhost_enableddir}/${priority}-${servername}-ssl${apache::params::vhost_extension}",
-                     "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl${apache::params::vhost_extension}"
-                     ]:
-                         ensure  => 'absent',
-                         force   => true,
-                         require => Exec["disable SSL vhost ${servername}"]
+                      "${apache::params::vhost_enableddir}/${priority}-${servername}-ssl${apache::params::vhost_extension}",
+                      "${apache::params::vhost_availabledir}/${priority}-${servername}-ssl${apache::params::vhost_extension}"
+                    ]:
+                      ensure  => 'absent',
+                      force   => true,
+                      require => Exec["disable SSL vhost ${servername}"]
                 }
                 exec { "disable SSL vhost ${servername}":
                     command => "${apache::params::a2dissite} ${priority}-${servername}-ssl${apache::params::vhost_extension}",
