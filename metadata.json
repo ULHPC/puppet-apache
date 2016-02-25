@@ -38,5 +38,29 @@
       ]
     }
   ],
-  "tags": ["apache"]
+  "tags": [
+    "apache"
+  ],
+  "classes": [
+    "apache",
+    "apache::administration",
+    "apache::common",
+    "apache::common::debian",
+    "apache::common::redhat",
+    "apache::debian",
+    "apache::dev",
+    "apache::diskcache",
+    "apache::diskcache::common",
+    "apache::diskcache::debian",
+    "apache::diskcache::redhat",
+    "apache::params",
+    "apache::redhat"
+  ],
+  "definitions": [
+    "apache::listen",
+    "apache::module",
+    "apache::vhost",
+    "apache::vhost::directory",
+    "apache::vhost::reverse_proxy"
+  ]
 }
