@@ -1,0 +1,66 @@
+{
+  "name": "ULHPC/apache",
+  "version": "0.2.0",
+  "author": "S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team",
+  "mail": "hpc-sysadmins@uni.lu",
+  "summary": "Configure and manage Apache",
+  "description": "Configure and manage Apache",
+  "license": "GPL-3.0",
+  "source": "https://github.com/ULHPC/puppet-apache",
+  "docs_project": "ulhpc-puppet-apache",
+  "project_page": "https://github.com/ULHPC/puppet-apache",
+  "issues_url": "https://github.com/ULHPC/puppet-apache/issues",
+  "forge_url": "https://forge.puppetlabs.com/ULHPC/apache",
+  "dependencies": [
+    {
+      "name": "puppetlabs-stdlib",
+      "version_requirement": ">=4.2.2 <5.0.0"
+    },
+    {
+      "name": "puppetlabs/concat",
+      "version_requirement": ">=1.2.0 <2.0.0"
+    },
+    {
+      "name": "ULHPC/openssl",
+      "version_requirement": ">=1.1.2"
+    },
+    {
+      "name": "ULHPC/sudo",
+      "version_requirement": ">=0.3.8"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    }
+  ],
+  "tags": [
+    "apache"
+  ],
+  "classes": [
+    "apache",
+    "apache::administration",
+    "apache::common",
+    "apache::common::debian",
+    "apache::common::redhat",
+    "apache::debian",
+    "apache::dev",
+    "apache::diskcache",
+    "apache::diskcache::common",
+    "apache::diskcache::debian",
+    "apache::diskcache::redhat",
+    "apache::params",
+    "apache::redhat"
+  ],
+  "definitions": [
+    "apache::listen",
+    "apache::module",
+    "apache::vhost",
+    "apache::vhost::directory",
+    "apache::vhost::reverse_proxy"
+  ]
+}

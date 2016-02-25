@@ -1,0 +1,14 @@
+<% if @lsbdistid == 'Debian' and @lsbmajdistrelease.to_i < 8 -%>NameVirtualHost *:80<% end %>
+Listen 80
+
+<% if @use_ssl -%>
+<IfModule mod_ssl.c>
+<% if @lsbdistid == 'Debian' and @lsbmajdistrelease.to_i < 8 -%>    NameVirtualHost *:443<% end %>
+    Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+<% if @lsbdistid == 'Debian' and @lsbmajdistrelease.to_i < 8 -%>    NameVirtualHost *:443<% end %>
+    Listen 443
+</IfModule>
+<% end -%>
