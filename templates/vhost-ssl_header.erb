@@ -1,5 +1,5 @@
 ################################################################################
-# <%= real_documentroot %>
+# <%= @real_documentroot %>
 # Apache configuration for https://<%= scope.lookupvar('servername') %>
 #
 ################################################################################
@@ -9,39 +9,39 @@
 ################################################################################
 
 <IfModule mod_ssl.c>
-<VirtualHost<% vhost_name.each do |vhost| -%> <%= vhost %>:<%= sslport %><% end -%>>
-    ServerName      <%= servername %>
-<% aliases.each do |serveralias| -%>
+<VirtualHost<% @vhost_name.each do |vhost| -%> <%= vhost %>:<%= @sslport %><% end -%>>
+    ServerName      <%= @servername %>
+<% @aliases.each do |serveralias| -%>
     ServerAlias     <%= serveralias %>
 <% end -%>
-    ServerAdmin     <%= real_serveradmin %>
+    ServerAdmin     <%= @real_serveradmin %>
 
     # Limit available info about this server.
     ServerSignature Off
 
-<% if passenger_app_root != '' -%>
-    PassengerAppRoot <%= passenger_app_root %>
+<% if @passenger_app_root != '' -%>
+    PassengerAppRoot <%= @passenger_app_root %>
 <% end -%>
-    DocumentRoot <%= real_documentroot %>
-    <Directory <%= real_documentroot %>>
-        Options       <%= options %>
-        AllowOverride <%= allow_override %>
-<% if allow_from == [] -%>
+    DocumentRoot <%= @real_documentroot %>
+    <Directory <%= @real_documentroot %>>
+        Options       <%= @options %>
+        AllowOverride <%= @allow_override %>
+<% if @allow_from == [] -%>
         Order         allow,deny
         Allow from    all
 <% else -%>
         Order Deny,Allow
-<% allow_from.each do |ipaddr| -%>
+<% @allow_from.each do |ipaddr| -%>
         Allow from <%= ipaddr %>
 <% end -%>
         Deny from all
 <% end -%>
     </Directory>
 
-<% if enable_cgi -%>
+<% if @enable_cgi -%>
     # CGI scripts
-    ScriptAlias /cgi-bin/ <%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>/cgi-bin/
-    <Directory <%= scope.lookupvar('apache::params::wwwdir') %>/<%= servername %>/cgi-bin>
+    ScriptAlias /cgi-bin/ <%= scope.lookupvar('apache::params::wwwdir') %>/<%= @servername %>/cgi-bin/
+    <Directory <%= scope.lookupvar('apache::params::wwwdir') %>/<%= @servername %>/cgi-bin>
         Options       +ExecCGI
         AddHandler    cgi-script .cgi
     </Directory>

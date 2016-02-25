@@ -52,7 +52,7 @@ class apache::diskcache(
 )
 inherits apache::params
 {
-    info ("Configuring apache::diskcache (with ensure = ${ensure}, use_ssl = $::{use_ssl}, redirect_ssl = $::{redirect_ssl})")
+    info ("Configuring apache::diskcache (with ensure = ${ensure}, use_ssl = ${::use_ssl}, redirect_ssl = ${::redirect_ssl})")
 
     if ! ($ensure in [ 'present', 'absent' ]) {
         fail("apache 'ensure' parameter must be set to either 'absent' or 'present'")
@@ -66,7 +66,7 @@ inherits apache::params
         debian, ubuntu:         { include apache::diskcache::debian }
         redhat, fedora, centos: { include apache::diskcache::redhat }
         default: {
-            fail("Module ${module_name} is not supported on $::{operatingsystem}")
+            fail("Module ${module_name} is not supported on ${::operatingsystem}")
         }
     }
 }

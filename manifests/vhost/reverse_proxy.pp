@@ -40,9 +40,9 @@
 #
 # [*target_url*]
 #  Target URL, url on which will all requests will be proxied.
-#  Example: target_url => "http://supervision.gaia-cluster.uni.lux" will result in the configuration
-#          ProxyPass        <source_path> http://supervision.gaia-cluster.uni.lux
-#          ProxyPassReverse <source_path> http://supervision.gaia-cluster.uni.lux
+#  Example: target_url => "http://myhost.my.org" will result in the configuration
+#          ProxyPass        <source_path> http://myhost.my.org
+#          ProxyPassReverse <source_path> http://myhost.my.org
 #
 # [*comment*]
 #  An optional comment to add on top of the directory
@@ -74,7 +74,7 @@
 #    apache::vhost::reverse_proxy { '/ganglia/':
 #         vhost       => 'localtest.domain.com',
 #         ensure      => 'present',
-#         target_url  => 'http://supervision.gaia-cluster.uni.lux/ganglia',
+#         target_url  => 'http://myhost.my.org/ganglia',
 #         allow_from  => [ '192.168.1.1', '10.1.2.3' ],
 #         comment     => "Ganglia",
 #         headers     => {'X-Test' => 'Value 1', 'X-Test2' => 'Value 2'}
@@ -84,8 +84,8 @@
 #    'localtest.domain.com' vhost:
 #
 #    #### Ganglia
-#    ProxyPass        /ganglia/ http://supervision.gaia-cluster.uni.lux
-#    ProxyPassReverse /ganglia/ http://supervision.gaia-cluster.uni.lux
+#    ProxyPass        /ganglia/ http://myhost.my.org
+#    ProxyPassReverse /ganglia/ http://myhost.my.org
 #    <Proxy http//localtest.domain.com/ganglia/*>
 #             Order Deny,Allow
 #             Deny from all
@@ -108,8 +108,8 @@
 define apache::vhost::reverse_proxy(
     $vhost,
     $ensure     = 'present',
-    $content    = '',
-    $source     = '',
+    $content    = undef,
+    $source     = undef,
     $target_url = '',
     $order      = '50',
     $allow_from = [],
@@ -172,15 +172,15 @@ define apache::vhost::reverse_proxy(
     $real_content = $content ? {
         '' => $source ? {
             ''      => template('apache/vhost-reverse-proxy.erb'),
-            default => ''
+            default => undef
         },
-        default => ''
+        default => undef
     }
     $real_source = $source ? {
-        '' => '',
+        '' => undef,
         default => $content ? {
             ''      => $source,
-            default => ''
+            default => undef
         }
     }
 
@@ -193,7 +193,7 @@ define apache::vhost::reverse_proxy(
     }
 
 
-    if (     gsub($target_url, '^https.*', 'https') == 'https'
+    if (     regsubst($target_url, '^https.*', 'https') == 'https'
         and ! defined(Concat::Fragment["apache_vhost_${vhost}_proxy_settings"])
       ) {
 

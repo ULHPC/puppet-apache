@@ -16,5 +16,47 @@
 #      sudo puppet apply -t /vagrant/tests/init.pp
 #
 node default {
-    include apache
+
+    class { 'apache':
+        use_ssl => true,
+        use_php => true
+    }
+
+    apache::vhost { 'myvhost.my.org':
+        ensure                       => 'present',
+        use_ssl                      => true,
+        aliases                      => [ '10.42.42.42' ],
+        enable_default               => true,
+        redirect_ssl                 => true,
+        ssl_cert_organisational_unit => 'My Org'
+    }
+
+    apache::vhost::directory { '/var/www/site-old':
+        ensure   => 'present',
+        vhost    => 'myvhost.my.org',
+        options  => 'Indexes FollowSymLinks MultiViews',
+        diralias => '/old',
+        comment  => 'Old site',
+    }
+
+    apache::vhost::reverse_proxy { '/admin/':
+        ensure     => 'present',
+        vhost      => 'myvhost.my.org',
+        target_url => 'http://10.42.42.24/',
+        comment    => 'Administrative services',
+        order      => 50
+    }
+
+    class { 'apache::diskcache':
+        ensure                 => 'present',
+        cache_root             => '/var/cache/apache2/mod_disk_cache/',
+        cache_path             => ['/'],
+        cachedirlevels         => 2,
+        cachedirlength         => 2,
+        cachemaxfilesize       => 100000000,
+        cacheignorenolastmod   => 'On',
+        cachemaxexpire         => 300,
+        cacheignorequerystring => 'Off'
+    }
+
 }

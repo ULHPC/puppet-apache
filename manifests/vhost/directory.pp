@@ -100,8 +100,8 @@
 define apache::vhost::directory(
     $vhost,
     $ensure     = 'present',
-    $content    = '',
-    $source     = '',
+    $content    = undef,
+    $source     = undef,
     $order      = '40',
     $options    = 'Indexes FollowSymLinks MultiViews',
     $allow_from = [],
@@ -135,15 +135,15 @@ define apache::vhost::directory(
     $real_content = $content ? {
         '' => $source ? {
             ''      => template('apache/vhost-directory.erb'),
-            default => ''
+            default => undef
         },
         default => $content
     }
     $real_source = $source ? {
-        '' => '',
+        '' => undef,
         default => $content ? {
             ''      => $source,
-            default => ''
+            default => undef
         }
     }
 

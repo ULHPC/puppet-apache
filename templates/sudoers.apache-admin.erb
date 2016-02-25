@@ -5,5 +5,5 @@
 # administrate Apache
 # Please refer to the APACHE_ADMIN command alias to check the authorized commands
 %<%= scope.lookupvar('apache::administration::admin_group') %> ALL=(<%= scope.lookupvar('apache::params::user') %>) ALL : ALL=(root) APACHE_ADMIN
-## END OF <%= name %>
+## END OF <%= @name %>
 

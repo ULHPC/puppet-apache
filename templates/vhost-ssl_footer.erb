@@ -1,10 +1,10 @@
 
     ######################################
-    ErrorLog <%= scope.lookupvar('apache::params::logdir') %>/<%= servername %>_ssl_error.log
+    ErrorLog <%= scope.lookupvar('apache::params::logdir') %>/<%= @servername %>_ssl_error.log
     # Possible values include: debug, info, notice, warn, error, crit,
     # alert, emerg.
     LogLevel warn
-    CustomLog <%= scope.lookupvar('apache::params::logdir') %>/<%= servername %>_ssl_access.log combined
+    CustomLog <%= scope.lookupvar('apache::params::logdir') %>/<%= @servername %>_ssl_access.log combined
 
     #######################
     #   SSL Engine Switch:
@@ -18,8 +18,8 @@
     #   SSLCertificateFile directive is needed.
     #SSLCertificateFile    /etc/ssl/certs/ssl-cert-snakeoil.pem
     #SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
-    SSLCertificateFile    <%= ssl_certfile %>
-    SSLCertificateKeyFile <%= ssl_keyfile %>
+    SSLCertificateFile    <%= @ssl_certfile %>
+    SSLCertificateKeyFile <%= @ssl_keyfile %>
 
     #   Server Certificate Chain:
     #   Point SSLCertificateChainFile at a file containing the
@@ -29,8 +29,8 @@
     #   when the CA certificates are directly appended to the server
     #   certificate for convinience.
     #SSLCertificateChainFile /etc/apache2/ssl.crt/server-ca.crt
-<% if ssl_certchainfile != "" -%>
-    SSLCertificateChainFile <%= ssl_certchainfile  %>
+<% if @ssl_certchainfile != "" -%>
+    SSLCertificateChainFile <%= @ssl_certchainfile  %>
 <% end -%>
 
     #   Certificate Authority (CA):
@@ -42,11 +42,11 @@
     #         Makefile to update the hash symlinks after changes.
     #SSLCACertificatePath /etc/ssl/certs/
     #SSLCACertificateFile /etc/apache2/ssl.crt/ca-bundle.crt
-<% if ssl_cacertdir != "" -%>
-    SSLCACertificatePath    <%= ssl_cacertdir %>
+<% if @ssl_cacertdir != "" -%>
+    SSLCACertificatePath    <%= @ssl_cacertdir %>
 <% end -%>
-<% if ssl_cacertfile != "" -%>
-    SSLCACertificateFile    <%= ssl_cacertfile %>
+<% if @ssl_cacertfile != "" -%>
+    SSLCACertificateFile    <%= @ssl_cacertfile %>
 <% end -%>
 
     #   Certificate Revocation Lists (CRL):
@@ -58,11 +58,11 @@
     #         Makefile to update the hash symlinks after changes.
     #SSLCARevocationPath /etc/apache2/ssl.crl/
     #SSLCARevocationFile /etc/apache2/ssl.crl/ca-bundle.crl
-<% if ssl_crldir != "" -%>
-    SSLCARevocationPath     <%= ssl_crldir %>
+<% if @ssl_crldir != "" -%>
+    SSLCARevocationPath     <%= @ssl_crldir %>
 <% end -%>
-<% if ssl_crlfile != "" -%>
-    SSLCARevocationFile     <%= ssl_crlfile %>
+<% if @ssl_crlfile != "" -%>
+    SSLCARevocationFile     <%= @ssl_crlfile %>
 <% end -%>
 
     #   Client Authentication (Type):
@@ -119,7 +119,7 @@
     <FilesMatch "\.(cgi|shtml|phtml|php)$">
         SSLOptions +StdEnvVars
     </FilesMatch>
-<% if enable_cgi -%>
+<% if @enable_cgi -%>
     <Directory /usr/lib/cgi-bin>
         SSLOptions +StdEnvVars
     </Directory>
