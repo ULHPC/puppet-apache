@@ -27,7 +27,7 @@ class apache::debian inherits apache::common {
             }
         }
 
-        if ($::lsbdistcodename in ['squeeze', 'wheezy']) {
+        if ($::lsbdistcodename in ['squeeze', 'wheezy', 'jessie']) {
             # SSL configuration
             file { "${apache::params::mods_availabledir}/ssl.conf":
                 ensure  => $apache::ensure,
