@@ -1,0 +1,8 @@
+<% if @comment != "" -%>
+##### <%= @comment %>
+<% end -%>
+<% if @lsbdistid == 'Debian' and @lsbmajdistrelease.to_i < 8 -%>
+NameVirtualHost *:<%= @listenport %>
+<% end -%>
+Listen          <%= @listenport %>
+
