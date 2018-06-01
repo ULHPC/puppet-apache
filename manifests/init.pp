@@ -55,8 +55,8 @@ inherits apache::params
     }
 
     case $::operatingsystem {
-        debian, ubuntu:         { include apache::debian }
-        redhat, fedora, centos: { include apache::redhat }
+        'debian', 'ubuntu':         { include ::apache::debian }
+        'redhat', 'fedora', 'centos': { include ::apache::redhat }
         default: {
             fail("Module ${module_name} is not supported on ${::operatingsystem}")
         }

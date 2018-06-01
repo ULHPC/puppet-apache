@@ -12,7 +12,7 @@
 class apache::diskcache::common {
 
     # Load the variables used in this module. Check the apache-params.pp file
-    require apache::params
+    require ::apache::params
 
     # Activate the rewrite module for automatic SSL redirection
     apache::module { 'disk_cache':

@@ -69,7 +69,7 @@ define apache::listen(
 )
 {
 
-    include apache::params
+    include ::apache::params
 
     # $name is provided by define invocation and is should be set to the
     # directory path
