@@ -9,7 +9,7 @@
 
 Configure and manage Apache
 
-      Copyright (c) 2016 S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team <hpc-sysadmins@uni.lu>
+      Copyright (c) 2018 UL HPC Team <hpc-sysadmins@uni.lu>
       
 
 | [Project Page](https://github.com/ULHPC/puppet-apache) | [Sources](https://github.com/ULHPC/puppet-apache) | [Documentation](https://ulhpc-puppet-apache.readthedocs.org/en/latest/) | [Issues](https://github.com/ULHPC/puppet-apache/issues) |
@@ -21,8 +21,26 @@ Configure and manage Apache.
 This module implements the following elements: 
 
 * __Puppet classes__:
+    - `apache` 
+    - `apache::administration` 
+    - `apache::common` 
+    - `apache::common::debian` 
+    - `apache::common::redhat` 
+    - `apache::debian` 
+    - `apache::dev` 
+    - `apache::diskcache` 
+    - `apache::diskcache::common` 
+    - `apache::diskcache::debian` 
+    - `apache::diskcache::redhat` 
+    - `apache::params` 
+    - `apache::redhat` 
 
 * __Puppet definitions__: 
+    - `apache::listen` 
+    - `apache::module` 
+    - `apache::vhost` 
+    - `apache::vhost::directory` 
+    - `apache::vhost::reverse_proxy` 
 
 All these components are configured through a set of variables you will find in
 [`manifests/params.pp`](manifests/params.pp). 
