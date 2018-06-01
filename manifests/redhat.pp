@@ -13,7 +13,7 @@ class apache::redhat inherits apache::common {
             '/usr/local/sbin/a2ensite',
             '/usr/local/sbin/a2dissite',
             '/usr/local/sbin/a2enmod',
-            '/usr/local/sbin/a2dismod'
+            '/usr/local/sbin/a2dismod',
             ] :
                 ensure => $apache::ensure,
                 mode   => '0755',
@@ -24,13 +24,13 @@ class apache::redhat inherits apache::common {
 
     # Add dependency for the apache::module definition
     Apache::Module {
-        require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ]
+        require => [ File['/usr/local/sbin/a2enmod'], File['/usr/local/sbin/a2dismod'] ],
     }
 
     if ($apache::use_ssl) {
         package { 'mod_ssl' :
             ensure  => $apache::ensure,
-            require => Package['apache2']
+            require => Package['apache2'],
         }
     }
 

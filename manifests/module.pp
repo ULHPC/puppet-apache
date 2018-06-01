@@ -52,7 +52,7 @@
 define apache::module($ensure = 'present' #, $content='', $source=''
 ) {
 
-    include apache::params
+    include ::apache::params
 
     # $name is provided by define invocation
     # guid of this entry
@@ -72,7 +72,7 @@ define apache::module($ensure = 'present' #, $content='', $source=''
     # }
 
     case $ensure {
-        present: {
+        'present': {
             # TODO: this might not work if $apache::ensure != present because of
             # the dependency on Service['apache2']... 
             exec { "enable apache module ${name}":
@@ -84,7 +84,7 @@ define apache::module($ensure = 'present' #, $content='', $source=''
                 require => Package['apache2'];
             }
         }
-        absent: {
+        'absent': {
             exec { "disable apache module ${name}":
                 command => "${apache::params::a2dismod} ${name}",
                 onlyif  => "/bin/sh -c '[ -L ${apache::params::mods_enableddir}/${name}.load ] \\

@@ -12,7 +12,7 @@
 class apache::common {
 
     # Load the variables used in this module. Check the params.pp file
-    require apache::params
+    require ::apache::params
 
     $sslensure = $apache::use_ssl ? {
         true    => 'present',
@@ -30,11 +30,11 @@ class apache::common {
     }
 
     package { $apache::params::php_packages:
-        ensure => $phpensure
+        ensure => $phpensure,
     }
 
     package { $apache::params::php_extensions:
-        ensure => $phpensure
+        ensure => $phpensure,
     }
 
     # Apache user
@@ -46,7 +46,7 @@ class apache::common {
     # Apache group
     group { $apache::params::group:
         ensure  => $apache::ensure,
-        require => Package['apache2']
+        require => Package['apache2'],
     }
 
     # Graceful restart of the apache server
@@ -63,7 +63,7 @@ class apache::common {
         notify => Exec[$apache::params::gracefulrestart],
     }
     if ($apache::use_ssl) {
-        include 'openssl'
+        include '::openssl'
     }
 
     # Activate the rewrite module for automatic SSL redirection
@@ -201,7 +201,7 @@ class apache::common {
                 $apache::params::vhost_availabledir,
                 $apache::params::vhost_enableddir,
                 $apache::params::mods_availabledir,
-                $apache::params::mods_enableddir
+                $apache::params::mods_enableddir,
                 ]:
                     ensure  => 'directory',
                     owner   => $apache::params::configdir_owner,

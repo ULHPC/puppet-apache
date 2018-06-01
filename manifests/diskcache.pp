@@ -63,8 +63,8 @@ inherits apache::params
     }
 
     case $::operatingsystem {
-        debian, ubuntu:         { include apache::diskcache::debian }
-        redhat, fedora, centos: { include apache::diskcache::redhat }
+        'debian', 'ubuntu':         { include ::apache::diskcache::debian }
+        'redhat', 'fedora', 'centos': { include ::apache::diskcache::redhat }
         default: {
             fail("Module ${module_name} is not supported on ${::operatingsystem}")
         }

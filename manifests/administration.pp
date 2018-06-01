@@ -57,7 +57,7 @@ inherits apache
         ensure => $ensure,
     }
 
-    include sudo
+    include ::sudo
 
     # create a user alias - not sure it really makes sense so commented
     # sudo::alias::user { 'APACHE_ADMIN':
@@ -71,10 +71,10 @@ inherits apache
                     "/etc/init.d/${apache::params::servicename}",
                     "/bin/su ${apache::params::user}",
                     "/bin/su - ${apache::params::user}",
-                    $apache::params::admin_cmdlist
+                    $apache::params::admin_cmdlist,
                     ],
     }
-    
+
     sudo::directive { "sudo_${admin_group}":
         ensure  => $ensure,
         content => template('apache/sudoers.apache-admin.erb'),
