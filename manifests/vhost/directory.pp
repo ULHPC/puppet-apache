@@ -50,6 +50,10 @@
 #  the option for the Directory directive.
 #  Default: 'Indexes FollowSymLinks MultiViews'
 #
+# [*authldapurl*]
+# ldap url for authentication
+# Default: '' (empty string)
+#
 # [*allow_from*]
 # List of IPs to authorize the access to the Vhosts
 # Default: [] (empty list) i.e. full access
@@ -99,14 +103,15 @@
 #
 define apache::vhost::directory(
     $vhost,
-    $ensure     = 'present',
-    $content    = undef,
-    $source     = undef,
-    $order      = '40',
-    $options    = 'Indexes FollowSymLinks MultiViews',
-    $allow_from = [],
-    $diralias   = '',
-    $comment    = ''
+    $ensure      = 'present',
+    $content     = undef,
+    $source      = undef,
+    $order       = '40',
+    $options     = 'Indexes FollowSymLinks MultiViews',
+    $allow_from  = [],
+    $diralias    = '',
+    $authldapurl = '',
+    $comment     = ''
 )
 {
 
@@ -130,6 +135,13 @@ define apache::vhost::directory(
     }
     # TODO: check that the ensure parameter of Apache::Vhost["${vhost}"] is set
     # to present
+
+    if ($authldapurl != '') {
+        apache::module {'authnz_ldap':
+            ensure => $ensure,
+            notify => Exec[$apache::params::gracefulrestart],
+        }
+    }
 
     # if content is passed, use that, else if source is passed use that
     $real_content = $content ? {

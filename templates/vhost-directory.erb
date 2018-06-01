@@ -6,16 +6,24 @@
 <% end -%>
     <Directory <%= @dirname %>>
         Options       <%= @options %>
-<% if @allow_from == [] -%>
+<% if @allow_from == [] && @authldapurl == "" -%>
         Order         allow,deny
         Allow from    all
-<% else -%>
+<% elsif @allow_from != [] -%>
         Order Deny,Allow
         # /!\ List here the authorized IP for accessing <%= @dirname %>
 <% @allow_from.each do |ipaddr| -%>
         Allow from <%= ipaddr %>
 <% end -%>
         Deny from all
+<% end -%>
+<% if @authldapurl != "" -%>
+        Require all granted
+        AuthType Basic
+        AuthName "LDAP Protected"
+        AuthBasicProvider ldap
+        AuthLDAPURL "<%= authldapurl %>"
+        Require valid-user
 <% end -%>
     </Directory>
     # End of configuration of <%= @dirname %>
